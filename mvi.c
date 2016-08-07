@@ -1,4 +1,6 @@
 /* See LICENSE file for copyright and license details. */
+#include <sys/ioctl.h>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -7,9 +9,14 @@
 #include <string.h>
 #include <unistd.h>
 
+/* Macros */
+#define VLINES(l) (1 + (l ? l->v/cols : 0))
+
 /* Types */
 #define LINSIZ 5 /* TODO 128 */
 /* TODO #define ESC_SET_CURSOR_POS "\033[%u;%uH" etc from bb vi */
+
+enum {MODE_NORMAL, MODE_INSERT};
 
 typedef struct Line Line;
 struct Line {
@@ -18,12 +25,13 @@ struct Line {
 	Line *p; /* previous */
 	size_t s; /* buffer size */
 	size_t l; /* length sans '\0' */
+	size_t v; /* visual length */ /* TODO implement calcvlen() */
 };
 
 typedef struct {
 	Line *l;
 	size_t o; /* offset */
-} Position;
+} Position; /* TODO rename Textpos? */
 
 /* Function declarations */
 static void die(const char *errstr, ...);
@@ -32,6 +40,13 @@ static void *erealloc(void *ptr, size_t size);
 
 static void init(void);
 static void loadfile(void);
+static void runcmd(char c);
+
+static void draw(void);
+static void clearscreen(void);
+static void fillborder(char c, size_t r);
+static void setpos(int r, int c);
+static void gettermsize(void);
 
 static Position addtext(char *s, Position p);
 static char *nudgeright(Position p);
@@ -41,7 +56,11 @@ static Line *addline(Line *l);
 static char *filename = NULL;
 static Line *fstln; /* first line */
 static Line *lstln; /* last line */
+static Line *scrln; /* first line on screen */
 static Position curpos;
+static int mode = MODE_NORMAL;
+static size_t rows, cols; /* terminal size */
+static size_t crow, ccol; /* current x,y location */
 
 /* Function definitions */
 void
@@ -89,8 +108,11 @@ init(void) /* TODO inittext()? */
 	l->n = NULL;
 	l->p = NULL;
 
-	curpos.l = fstln = lstln = l;
+	curpos.l = fstln = lstln = scrln = l;
 	curpos.o = 0;
+
+	gettermsize();
+	crow = ccol = 0;
 
 	/* TODO
 	 * Initialize interrupt handling? signal(), sigaction, SIG_IGN, SIG_DFL,
@@ -125,6 +147,87 @@ loadfile(void)
 
 	close(fd);
 	free(buf);
+}
+
+void
+runcmd(char c) /* it's tricky */
+{
+	char *s;
+
+	draw(); /* TODO meliorate efficacy */
+
+	if (mode == MODE_INSERT) { /* TODO prettier sollution? */
+		/* TODO what if ESC? change mode */
+		s = ecalloc(2, sizeof(char));
+		s[0] = c;
+		addtext(s, curpos); /* TODO implement undo */
+		return;
+	}
+
+	switch (c) {
+	case 'i':
+		mode = MODE_INSERT;
+		break;
+	}
+}
+
+void
+draw(void)
+{
+	Line *l;
+	size_t r, c;
+
+	clearscreen();
+	setpos(0, 0);
+	r = c = 0;
+	for (l = scrln; l && r < rows; l = l->n, r++) {
+		if (VLINES(l) < rows - r) { /* ample space */ /* TODO <= ? */
+			printf("%s", l->c);
+			if (r != rows - 1) /* TODO confirm correctness */
+				printf("\n");
+		} else {
+			fillborder('@', r);
+			break;
+		}
+	}
+	if (r < rows - 1)
+		fillborder('~', r);
+	setpos(crow, ccol);
+}
+
+void
+clearscreen(void)
+{
+	setpos(0, 0);
+	printf("\033[2J");
+	/* TODO setpos(crow, ccol) */
+}
+
+void
+fillborder(char c, size_t r)
+{
+	setpos(r, 0);
+	for (; r < rows - 1; r++)
+		printf("%c\n", c);
+	putchar(c);
+	setpos(crow, ccol);
+}
+
+void
+setpos(int r, int c)
+{
+	printf("\033[%u;%uH", ++r, ++c); /* TODO 1-based or 0-based? */
+}
+
+void
+gettermsize(void) /* TODO YAGNI? */
+{
+	struct winsize argp;
+
+	ioctl(fileno(stdout), TIOCGWINSZ, &argp); /* TODO open(ttyname(...)) */
+	/* TODO error checking */
+	rows = argp.ws_row;
+	cols = argp.ws_col;
 }
 
 Position
@@ -192,6 +295,8 @@ addline(Line *l)
 int
 main(int argc, char *argv[])
 {
+	int editing = 1; /* TODO elevate scope? */
+
 	if (argc > 2)
 		die("usage: mvi [file]\n");
 	if (argc == 2)
@@ -199,7 +304,9 @@ main(int argc, char *argv[])
 
 	init();
 	loadfile();
-	/* edit() */
+	while (editing)
+		runcmd(getchar()); /* TODO need char elsewhere? */
 
+	/* TODO cleanup? */
 	return EXIT_SUCCESS;
 }
