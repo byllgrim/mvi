@@ -141,7 +141,7 @@ loadfile(void)
 
 	buf = ecalloc(BUFSIZ + 1, 1);
 	while ((n = read(fd, buf, BUFSIZ)) > 0) {
-		buf[n] = '\n';
+		buf[n] = '\0';
 		p = addtext(buf, p);
 	}
 
