@@ -116,7 +116,7 @@ init(void) /* TODO inittext()? */
 
 	/* TODO
 	 * Initialize interrupt handling? signal(), sigaction, SIG_IGN, SIG_DFL,
-	 *     SIGHUP, SIGINT, SIGWINCH, SIGQUIT, SIGXFSZ, SIGTERM.
+	 *     SIGHUP, SIGINT, SIGWINCH, SIGQUIT, SIGXFSZ, SIGTERM (ex posix).
 	 *     Do this first, to ward against precipitous interrupts?
 	 * Get terminal modes (tcgetattr)
 	 * atexit(). Reset? Save?
@@ -145,6 +145,12 @@ loadfile(void)
 		p = addtext(buf, p);
 	}
 
+	if (!lstln->l) { /* posix lines end in '\n' */
+		free(lstln->c);
+		lstln = lstln->p;
+		free(lstln->n);
+		lstln->n = NULL;
+	}
 	close(fd);
 	free(buf);
 }
