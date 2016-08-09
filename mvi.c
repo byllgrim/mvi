@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 
 /* Macros */
@@ -61,6 +62,7 @@ static Position curpos;
 static int mode = MODE_NORMAL;
 static size_t rows, cols; /* terminal size */
 static size_t crow, ccol; /* current x,y location */
+static struct termios attr_saved, attr_mvi;
 
 /* Function definitions */
 void
@@ -113,6 +115,10 @@ init(void) /* TODO inittext()? */
 
 	gettermsize();
 	crow = ccol = 0;
+	tcgetattr(fileno(stdin), &attr_saved);
+	attr_mvi = attr_saved;
+	attr_mvi.c_lflag &= (~ICANON & ~ECHO); /* IXON ICRNL ONLCR ? */
+	tcsetattr(fileno(stdin), TCSANOW, &attr_mvi);
 
 	/* TODO
 	 * Initialize interrupt handling? signal(), sigaction, SIG_IGN, SIG_DFL,
@@ -216,6 +222,7 @@ fillborder(char c, size_t r)
 	for (; r < rows - 1; r++)
 		printf("%c\n", c);
 	putchar(c);
+	fflush(stdout);
 	setpos(crow, ccol);
 }
 
@@ -310,6 +317,7 @@ main(int argc, char *argv[])
 
 	init();
 	loadfile();
+	draw();
 	while (editing)
 		runcmd(getchar()); /* TODO need char elsewhere? */
 
