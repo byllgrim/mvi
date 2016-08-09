@@ -12,10 +12,10 @@
 
 /* Macros */
 #define VLINES(l) (1 + (l ? l->v/cols : 0))
+#define ISESC(c)  (c == 27)
 
 /* Types */
 #define LINSIZ 5 /* TODO 128 */
-/* TODO #define ESC_SET_CURSOR_POS "\033[%u;%uH" etc from bb vi */
 
 enum {MODE_NORMAL, MODE_INSERT};
 
@@ -52,7 +52,10 @@ static void gettermsize(void);
 static Position addtext(char *s, Position p);
 static char *nudgeright(Position p);
 static Line *addline(Line *l);
+static void moveleft(void);
 static void moveright(void);
+static void moveup(void);
+static void movedown(void);
 
 /* Variables */
 static char *filename = NULL;
@@ -63,6 +66,7 @@ static Position curpos;
 static int mode = MODE_NORMAL;
 static size_t rows, cols; /* terminal size */
 static size_t crow, ccol; /* current x,y location */
+static size_t saved_offset; /* used for moving up/down lines */
 static struct termios attr_saved, attr_mvi;
 
 /* Function definitions */
@@ -112,7 +116,7 @@ init(void) /* TODO inittext()? */
 	l->p = NULL;
 
 	curpos.l = fstln = lstln = scrln = l;
-	curpos.o = 0;
+	curpos.o = saved_offset= 0;
 
 	gettermsize();
 	crow = ccol = 0;
@@ -167,38 +171,43 @@ runcmd(char c) /* it's tricky */
 {
 	char *s;
 
-	if (mode == MODE_INSERT) { /* TODO prettier sollution? */
-		/* TODO what if ESC? change mode */
-		s = ecalloc(2, sizeof(char)); /* TODO tidy */
+	if (mode == MODE_INSERT) { /* TODO prettify */
+		if (ISESC(c)) {
+			mode = MODE_NORMAL;
+			goto normal;
+		}
+		s = ecalloc(2, sizeof(char));
 		s[0] = c;
 		addtext(s, curpos); /* TODO implement undo */
+		free(s);
 		moveright();
-		draw();
-		return;
+		goto done;
 	}
 
+normal:
 	switch (c) {
 	case 'h':
-		/* TODO */
+		moveleft();
 		break;
 	case 'i':
 		mode = MODE_INSERT;
 		break;
 	case 'j':
-		/* TODO */
+		movedown();
 		break;
 	case 'k':
-		/* TODO */
+		moveup();
 		break;
 	case 'l':
 		moveright();
 	}
 
+done:
 	draw(); /* TODO meliorate efficacy */
 }
 
 void
-draw(void)
+draw(void) /* TODO files longer than screen size */
 {
 	Line *l;
 	size_t r, c;
@@ -319,6 +328,21 @@ addline(Line *l)
 }
 
 void
+moveleft(void)
+{
+	if (!curpos.o)
+		return;
+
+	if (!ccol)
+		printf("up a line");
+	else
+		--ccol;
+
+	saved_offset = --curpos.o; /* TODO unicode */
+	setpos(crow, ccol);
+}
+
+void
 moveright(void)
 {
 	if (curpos.o >= curpos.l->l - 1) /* end of line */
@@ -331,7 +355,39 @@ moveright(void)
 		++ccol;
 	}
 
-	++curpos.o; /* TODO unicode */
+	saved_offset = ++curpos.o; /* TODO unicode */
+	setpos(crow, ccol);
+}
+
+void
+moveup(void)
+{
+	if (!curpos.l->p)
+		return;
+	if (saved_offset > curpos.o) /* TODO assure correct logic */
+		curpos.o = saved_offset;
+
+	curpos.l = curpos.l->p;
+	if (curpos.l->l - 1 < curpos.o) /* TODO assure logic */
+		curpos.o = curpos.l->l -1;
+
+	--crow; ccol = curpos.o; /* TODO this is just a quick fix */
+	setpos(crow, ccol);
+}
+
+void
+movedown(void)
+{
+	if (!curpos.l->n)
+		return;
+	if (saved_offset > curpos.o) /* TODO assure correct logic */
+		curpos.o = saved_offset;
+
+	curpos.l = curpos.l->n;
+	if (curpos.l->l - 1 < curpos.o)
+		curpos.o = curpos.l->l - 1;
+
+	++crow; ccol = curpos.o; /* TODO this is just a quick fix */
 	setpos(crow, ccol);
 }
 
