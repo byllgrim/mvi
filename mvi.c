@@ -52,6 +52,7 @@ static void gettermsize(void);
 static Position addtext(char *s, Position p);
 static char *nudgeright(Position p);
 static Line *addline(Line *l);
+static void moveright(void);
 
 /* Variables */
 static char *filename = NULL;
@@ -166,21 +167,34 @@ runcmd(char c) /* it's tricky */
 {
 	char *s;
 
-	draw(); /* TODO meliorate efficacy */
-
 	if (mode == MODE_INSERT) { /* TODO prettier sollution? */
 		/* TODO what if ESC? change mode */
-		s = ecalloc(2, sizeof(char));
+		s = ecalloc(2, sizeof(char)); /* TODO tidy */
 		s[0] = c;
 		addtext(s, curpos); /* TODO implement undo */
+		moveright();
+		draw();
 		return;
 	}
 
 	switch (c) {
+	case 'h':
+		/* TODO */
+		break;
 	case 'i':
 		mode = MODE_INSERT;
 		break;
+	case 'j':
+		/* TODO */
+		break;
+	case 'k':
+		/* TODO */
+		break;
+	case 'l':
+		moveright();
 	}
+
+	draw(); /* TODO meliorate efficacy */
 }
 
 void
@@ -222,7 +236,6 @@ fillborder(char c, size_t r)
 	for (; r < rows - 1; r++)
 		printf("%c\n", c);
 	putchar(c);
-	fflush(stdout);
 	setpos(crow, ccol);
 }
 
@@ -261,7 +274,7 @@ addtext(char *s, Position p)
 			txt = nudgeright(p);
 			txt[p.o] = c;
 			++p.l->l;
-			++p.o;
+			++p.o; /* TODO unicode? */
 		}
 	}
 
@@ -303,6 +316,23 @@ addline(Line *l)
 	l->n = new;
 
 	return new;
+}
+
+void
+moveright(void)
+{
+	if (curpos.o >= curpos.l->l - 1) /* end of line */
+		return;
+
+	if (ccol >= cols - 1) { /* end of screen */
+		ccol = 0;
+		++crow; /* TODO is this safe? */
+	} else {
+		++ccol;
+	}
+
+	++curpos.o; /* TODO unicode */
+	setpos(crow, ccol);
 }
 
 int
