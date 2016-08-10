@@ -12,7 +12,8 @@
 
 /* Macros */
 #define VLINES(l) (1 + (l ? l->v/cols : 0))
-#define ISESC(c)  (c == 27)
+#define ISESC(c) (c == 27)
+#define LASTINLINE (curpos.o >= curpos.l->l - 1)
 
 /* Types */
 #define LINSIZ 5 /* TODO 128 */
@@ -173,11 +174,12 @@ runcmd(char c) /* it's tricky */
 
 	if (mode == MODE_INSERT) { /* TODO prettify */
 		if (ISESC(c)) {
+			moveleft();
 			mode = MODE_NORMAL;
 			goto normal;
 		}
 		s = ecalloc(2, sizeof(char));
-		s[0] = c;
+		s[0] = c; /* TODO stringmychar(c); */
 		addtext(s, curpos); /* TODO implement undo */
 		free(s);
 		moveright();
@@ -186,6 +188,10 @@ runcmd(char c) /* it's tricky */
 
 normal:
 	switch (c) {
+	case 'a':
+		moveright();
+		mode = MODE_INSERT;
+		break;
 	case 'h':
 		moveleft();
 		break;
@@ -199,7 +205,9 @@ normal:
 		moveup();
 		break;
 	case 'l':
-		moveright();
+		if (!LASTINLINE)
+			moveright();
+		break;
 	}
 
 done:
@@ -235,7 +243,7 @@ clearscreen(void)
 {
 	setpos(0, 0);
 	printf("\033[2J");
-	/* TODO setpos(crow, ccol) */
+	/* TODO setpos(crow, ccol)? No? */
 }
 
 void
@@ -345,9 +353,6 @@ moveleft(void)
 void
 moveright(void)
 {
-	if (curpos.o >= curpos.l->l - 1) /* end of line */
-		return;
-
 	if (ccol >= cols - 1) { /* end of screen */
 		ccol = 0;
 		++crow; /* TODO is this safe? */
