@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include <sys/ioctl.h>
 
+#include <alloca.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -43,10 +44,12 @@ static void *erealloc(void *ptr, size_t size);
 static void init(void);
 static void loadfile(void);
 static void runcmd(char c);
+static void excmd(void);
 
 static void draw(void);
 static void clearscreen(void);
 static void fillborder(char c, size_t r);
+static void showstatus(void);
 static void setpos(int r, int c);
 static void gettermsize(void);
 
@@ -69,6 +72,7 @@ static size_t rows, cols; /* terminal size */
 static size_t crow, ccol; /* current x,y location */
 static size_t saved_offset; /* used for moving up/down lines */
 static struct termios attr_saved, attr_mvi;
+static char status[BUFSIZ] = "";
 
 /* Function definitions */
 void
@@ -151,7 +155,7 @@ loadfile(void)
 	if ((fd = open(filename, O_RDONLY)) < 0)
 		die("mvi: error: %s\n", strerror(errno));
 
-	buf = ecalloc(BUFSIZ + 1, 1);
+	buf = ecalloc(BUFSIZ + 1, 1); /* TODO alloca */
 	while ((n = read(fd, buf, BUFSIZ)) > 0) {
 		buf[n] = '\0';
 		p = addtext(buf, p);
@@ -188,6 +192,9 @@ runcmd(char c) /* it's tricky */
 
 normal:
 	switch (c) {
+	case ':':
+		excmd();
+		break;
 	case 'a':
 		moveright();
 		mode = MODE_INSERT;
@@ -215,6 +222,35 @@ done:
 }
 
 void
+excmd(void)
+{
+	char c;
+	size_t i;
+	char *s = alloca(cols); /* TODO error handling */
+
+	strncpy(status, ":", 2);
+	showstatus();
+	c = getchar();
+	for (i = 0; i < cols - 2 && c != '\n'; ++i) { /* -2 for : and \0 */
+		if (ISESC(c))
+			return;
+		putchar(c);
+		s[i] = c;
+		c = getchar();
+	}
+	s[++i] = '\0';
+
+	switch (s[0]) {
+	case 'q':
+		strncpy(status, "quiting", 8);
+		break;
+	case 'w':
+		strncpy(status, "saving", 7); /* TODO strncpy is ugly */
+		break;
+	}
+}
+
+void
 draw(void) /* TODO files longer than screen size */
 {
 	Line *l;
@@ -235,6 +271,7 @@ draw(void) /* TODO files longer than screen size */
 	}
 	if (r < rows - 1)
 		fillborder('~', r);
+	showstatus();
 	setpos(crow, ccol);
 }
 
@@ -250,10 +287,26 @@ void
 fillborder(char c, size_t r)
 {
 	setpos(r, 0);
-	for (; r < rows - 1; r++)
+	for (; r < rows - 2; r++) /* room for status bar */
 		printf("%c\n", c);
 	putchar(c);
 	setpos(crow, ccol);
+}
+
+void
+showstatus(void)
+{
+	size_t i;
+
+	setpos(rows - 1, 0);
+	for (i = 0; i < cols; i++)
+		putchar(' ');
+
+	if (strlen(status) > cols)
+		status[cols] = '\0';
+	setpos(rows - 1, 0);
+	printf(status);
+	fflush(stdout);
 }
 
 void
