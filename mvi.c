@@ -43,6 +43,7 @@ static void *erealloc(void *ptr, size_t size);
 
 static void init(void);
 static void loadfile(void);
+static void savefile(void);
 static void runcmd(char c);
 static void excmd(void);
 
@@ -172,6 +173,31 @@ loadfile(void)
 }
 
 void
+savefile(void)
+{
+	char nofile[] = "No current filename";
+	FILE *file;
+	Position p;
+
+	if (!filename) {
+		strncpy(status, nofile, strlen(nofile)); /* TODO prettify */
+		return;
+	}
+
+	if (!(file = fopen(filename, "w"))) {
+		strncpy(status, strerror(errno), strlen(strerror(errno)));
+		return;
+	}
+
+	for (p.l = fstln; p.l; p.l = p.l->n)
+		fprintf(file, "%s\n", p.l->c);
+
+	strncpy(status, "saved file", strlen("saved file"));
+	/* TODO "file" x lines, y characters*/
+	fclose(file);
+}
+
+void
 runcmd(char c) /* it's tricky */
 {
 	char *s;
@@ -245,7 +271,7 @@ excmd(void)
 		strncpy(status, "quiting", 8);
 		break;
 	case 'w':
-		strncpy(status, "saving", 7); /* TODO strncpy is ugly */
+		savefile();
 		break;
 	}
 }
