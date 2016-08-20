@@ -4,6 +4,7 @@
 #include <alloca.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +47,7 @@ static void loadfile(void);
 static void savefile(void);
 static void runcmd(char c);
 static void excmd(void);
+static void quit(void);
 
 static void draw(void);
 static void clearscreen(void);
@@ -69,11 +71,13 @@ static Line *lstln; /* last line */
 static Line *scrln; /* first line on screen */
 static Position curpos;
 static int mode = MODE_NORMAL;
+static int unsaved = 0;
 static size_t rows, cols; /* terminal size */
 static size_t crow, ccol; /* current x,y location */
 static size_t saved_offset; /* used for moving up/down lines */
 static struct termios attr_saved, attr_mvi;
 static char status[BUFSIZ] = "";
+static struct sigaction *signalignore;
 
 /* Function definitions */
 void
@@ -110,9 +114,14 @@ erealloc(void *ptr, size_t size) {
 }
 
 void
-init(void) /* TODO inittext()? */
+init(void) /* TODO rename inittext()? */
 {
 	Line *l;
+
+	signalignore = ecalloc(1, sizeof(struct sigaction));
+	signalignore->sa_handler = SIG_IGN;
+	sigaction(SIGINT, signalignore, NULL); /* ward from precepitous ints */
+	/* TODO other signals */
 
 	l = ecalloc(1, sizeof(Line));
 	l->c = ecalloc(LINSIZ, sizeof(char));
@@ -131,15 +140,7 @@ init(void) /* TODO inittext()? */
 	attr_mvi.c_lflag &= (~ICANON & ~ECHO); /* IXON ICRNL ONLCR ? */
 	tcsetattr(fileno(stdin), TCSANOW, &attr_mvi);
 
-	/* TODO
-	 * Initialize interrupt handling? signal(), sigaction, SIG_IGN, SIG_DFL,
-	 *     SIGHUP, SIGINT, SIGWINCH, SIGQUIT, SIGXFSZ, SIGTERM (ex posix).
-	 *     Do this first, to ward against precipitous interrupts?
-	 * Get terminal modes (tcgetattr)
-	 * atexit(). Reset? Save?
-	 * Set terminal modes? ECHO|ICANON (raw noecho) see rawmode() in bb vi
-	 * Alternate screen buffer write1("\033[?1049h");
-	 */
+	/* TODO atexit(). Reset? Save? */
 }
 
 void
@@ -180,20 +181,21 @@ savefile(void)
 	Position p;
 
 	if (!filename) {
-		strncpy(status, nofile, strlen(nofile)); /* TODO prettify */
+		strncpy(status, nofile, strlen(nofile)+1); /* TODO prettify */
 		return;
 	}
 
 	if (!(file = fopen(filename, "w"))) {
-		strncpy(status, strerror(errno), strlen(strerror(errno)));
+		strncpy(status, strerror(errno), strlen(strerror(errno))+1);
 		return;
 	}
 
 	for (p.l = fstln; p.l; p.l = p.l->n)
 		fprintf(file, "%s\n", p.l->c);
 
-	strncpy(status, "saved file", strlen("saved file"));
+	strncpy(status, "saved file", strlen("saved file")+1);
 	/* TODO "file" x lines, y characters*/
+	unsaved = 0;
 	fclose(file);
 }
 
@@ -211,12 +213,14 @@ runcmd(char c) /* it's tricky */
 		s = ecalloc(2, sizeof(char));
 		s[0] = c; /* TODO stringmychar(c); */
 		addtext(s, curpos); /* TODO implement undo */
+		unsaved = 1;
 		free(s);
 		moveright();
 		goto done;
 	}
 
 normal:
+	/* TODO while (s[i]) */
 	switch (c) {
 	case ':':
 		excmd();
@@ -268,12 +272,23 @@ excmd(void)
 
 	switch (s[0]) {
 	case 'q':
-		strncpy(status, "quiting", 8);
+		if (unsaved && s[1] != '!')
+			strncpy(status, "unsaved changes", 16);
+		else
+			quit();
 		break;
 	case 'w':
 		savefile();
 		break;
 	}
+}
+
+void
+quit(void)
+{
+	status[0] = '\0';
+	showstatus();
+	exit(EXIT_SUCCESS); /* TODO restore attr_saved? */
 }
 
 void
