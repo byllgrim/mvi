@@ -36,6 +36,7 @@ static void cmdnormal(void); /* TODO change name? */
 static void draw(void);
 static void insertch(int r);
 static void insertstr(char *str);
+static Line *newline(void); /* TODO arguments next/prev */
 
 /* global variables */
 static int edit = 1;
@@ -102,6 +103,21 @@ insertstr(char *src)
 		/* TODO consider \n inside line */
 		cur.l->l += len;
 	}
+	/* TODO insert at correct position */
+}
+
+Line *
+newline(void)
+{
+	Line *l;
+
+	l = calloc(1, sizeof(Line)); /* TODO error checking */
+	l->s = calloc(BUFSIZ, sizeof(char));
+	l->p = NULL;
+	l->n = NULL;
+	l->m = 1;
+
+	return l;
 }
 
 int
@@ -112,12 +128,7 @@ main()
 	noecho();
 	/* TODO init()? */
 	cur.o = 0;
-	cur.l = calloc(1, sizeof(Line)); /* TODO error checking */
-	cur.l->s = calloc(BUFSIZ, sizeof(char));
-	cur.l->p = NULL;
-	cur.l->n = NULL;
-	cur.l->m = 1;
-	/* TODO newline() */
+	cur.l = newline();
 
 	while (edit) {
 		draw();
