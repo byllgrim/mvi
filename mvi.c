@@ -58,9 +58,10 @@ cmdinsert(void)
 	int c;
 
 	c = getch();
-	if (ISESC(c))
-		mode = NORMAL; /* TODO moveleft()? */
-	else
+	if (ISESC(c)) {
+		mode = NORMAL;
+		moveleft();
+	} else
 		insertch(c);
 }
 
