@@ -34,6 +34,7 @@ typedef struct {
 } Cursor;
 
 /* function declarations */
+static void init(void);
 static void cmdinsert(void); /* TODO change name */
 static void cmdnormal(void); /* TODO change name? */
 static void cmdcommand(void);
@@ -55,6 +56,19 @@ static Mode mode = NORMAL;
 static char *status = NULL;
 
 /* function definitions */
+void
+init(void)
+{
+	setlocale(LC_ALL, ""); /* TODO is this necessary? */
+	initscr();
+	raw();
+	noecho();
+	cury = curx = 0;
+	cur.o = 0;
+	cur.l = newline();
+	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
+}
+
 void
 cmdinsert(void)
 {
@@ -213,19 +227,11 @@ setstatus(char *fmt, ...)
 int
 main()
 {
-	setlocale(LC_ALL, ""); /* TODO is this necessary? */
-	initscr();
-	raw();
-	noecho();
-	cury = curx = 0;
-	cur.o = 0;
-	cur.l = newline();
-	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
-	/* TODO init()? */
-	/* TODO setlocale? */
+	init();
 
 	while (edit) {
 		draw();
+
 		if (mode == INSERT)
 			cmdinsert();
 		else if (mode == NORMAL)
@@ -236,6 +242,6 @@ main()
 		}
 	}
 
-	endwin();
+	endwin(); /* TODO atexit() and such? */
 	return 0;
 }
