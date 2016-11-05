@@ -36,13 +36,15 @@ typedef struct {
 /* function declarations */
 static void cmdinsert(void); /* TODO change name */
 static void cmdnormal(void); /* TODO change name? */
+static void cmdcommand(void);
+static void runcmd(char *cmd);
 static void draw(void);
 static void insertch(int c);
 static void insertstr(char *str);
 static Line *newline(void); /* TODO arguments next/prev */
 static void moveleft(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
-static void tmpstatus(char *fmt, ...); /* TODO temporary? */
+static void setstatus(char *fmt, ...);
 
 /* global variables */
 static int edit = 1;
@@ -50,6 +52,7 @@ static int cury, curx; /* TODO rename y,x or posy,posx */
 static Cursor cur; /* TODO be mindful of the stack */
 /* TODO firstline? */
 static Mode mode = NORMAL;
+static char *status = NULL;
 
 /* function definitions */
 void
@@ -58,6 +61,7 @@ cmdinsert(void)
 	int c;
 
 	c = getch();
+	/* TODO if backspace prevlen to \0 */
 	if (ISESC(c)) {
 		mode = NORMAL;
 		moveleft();
@@ -69,22 +73,49 @@ void
 cmdnormal(void)
 {
 	switch(getch()) {
+	case ':':
+		cmdcommand();
+		break;
 	case 'h':
 		moveleft();
 		break;
 	case 'i':
 		mode = INSERT;
 		break;
-	case 'q': /* TODO this is temporary */
-		edit = 0;
-		break;
 	}
+}
+
+void
+cmdcommand(void)
+{
+	char *cmd;
+	int i = 0;
+
+	cmd = calloc(BUFSIZ, sizeof(char));
+	/* TODO clear status */
+	mvprintw(LINES-1, 0, ":");
+
+	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i]))
+		printw("%c", cmd[i++]);
+
+	runcmd(cmd);
+	/* TODO free(cmd) */
+	/* TODO fix memleaks all over the place */
+}
+
+void
+runcmd(char *cmd)
+{
+	/* TODO more commands. recursive descent? */
+	if (cmd[0] == 'q')
+		edit = 0;
 }
 
 void
 draw(void)
 {
 	mvprintw(0, 0, "%s", cur.l->s); /* TODO print all lines */
+	mvprintw(LINES-1, 0, status); /* TODO getmaxy() */
 	move(cury, curx);
 	refresh();
 }
@@ -166,24 +197,17 @@ prevlen(char *s, int o)
 		if (n == i)
 			return n;
 	}
-	return 0; /* TODO -1 */
+	return 0; /* TODO -1? */
 }
 
 void
-tmpstatus(char *fmt, ...)
+setstatus(char *fmt, ...)
 {
-	char *msg;
-	int len;
 	va_list ap;
 
-	len = getmaxx(stdscr);
-	msg = calloc(len+1, sizeof(char));
-
 	va_start(ap, fmt);
-	vsnprintf(msg, len, fmt, ap);
+	vsnprintf(status, BUFSIZ, fmt, ap);
 	va_end(ap);
-
-	mvprintw(LINES-3, 0, msg);
 }
 
 int
@@ -196,6 +220,7 @@ main()
 	cury = curx = 0;
 	cur.o = 0;
 	cur.l = newline();
+	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
 	/* TODO init()? */
 	/* TODO setlocale? */
 
@@ -206,10 +231,8 @@ main()
 		else if (mode == NORMAL)
 			cmdnormal();
 		else {
-			mvprintw(LINES-3, 0, "invalid mode");
-			getch();
 			mode = NORMAL; /* TODO think about this */
-			/* TODO setstatus()? */
+			setstatus("invalid mode!");
 		}
 	}
 
