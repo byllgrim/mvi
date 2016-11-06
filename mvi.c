@@ -45,6 +45,7 @@ static void insertstr(char *str);
 static Line *newline(void); /* TODO arguments next/prev */
 static void moveleft(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
+static int lflen(char *s); /* TODO return size_t? */
 static void setstatus(char *fmt, ...);
 
 /* global variables */
@@ -157,19 +158,28 @@ insertch(int c) /* TODO change variable name */
 void
 insertstr(char *src)
 {
-	size_t len = strlen(src); /* TODO trust strlen? */
-	/* TODO char *ins = cur.l->s + cur.o */
+	size_t totlen = strlen(src); /* TODO trust strlen? */
+	size_t fstlen = lflen(src); /* length until \n or \0 */
+	char *ins = cur.l->s + cur.o; /* insert point */
 
-	if ((cur.l->l + len) >= (BUFSIZ * cur.l->m)) /* not enough space */
+	/* enough space? */
+	if ((cur.l->l + fstlen) >= (BUFSIZ * cur.l->m))
 		return; /* TODO make more space */
 
-	if (cur.l->s[cur.o] != '\0') /* not at end of string */
-		memmove(cur.l->s+len+cur.o, cur.l->s+cur.o, cur.l->l - cur.o);
+	/* middle of string? */
+	if (cur.l->s[cur.o] != '\0')
+		memmove(ins + fstlen, ins, cur.l->l - cur.o);
 
-	memcpy(cur.l->s + cur.o, src, len);
-	/* TODO consider \n inside line */
-	cur.l->l += len;
-	cur.o += len;
+	/* insert new stuff */
+	memcpy(ins, src, fstlen);
+	cur.l->l += fstlen;
+	cur.o += fstlen;
+
+	/* the rest goes in a newline */
+	if (fstlen == totlen) /* no newlines */
+		return;
+	setstatus("newline");
+	/* TODO newline(src[totlen-fstlen]) */
 }
 
 Line *
@@ -212,6 +222,20 @@ prevlen(char *s, int o)
 			return n;
 	}
 	return 0; /* TODO -1? */
+}
+
+int
+lflen(char *s)
+{
+	char *lf;
+	int len;
+
+	if ((lf = strchr(s, '\n'))) /* search for Line Feed */
+		len = lf - s;
+	else
+		len = strlen(s);
+
+	return len;
 }
 
 void
