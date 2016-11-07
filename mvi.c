@@ -31,7 +31,7 @@ typedef struct {
 	Line *l;
 	int o;  /* offset */
 	        /* TODO visual offset? */
-} Cursor;
+} Position;
 
 /* function declarations */
 static void init(void);
@@ -41,8 +41,8 @@ static void cmdcommand(void);
 static void runcmd(char *cmd);
 static void draw(void);
 static void insertch(int c);
-static void insertstr(char *str);
-static Line *newline(void); /* TODO arguments next/prev */
+static Position insertstr(Position p, char *str);
+static Line *newline(Line *p, Line *n);
 static void moveleft(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
 static int lflen(char *s); /* TODO return size_t? */
@@ -51,8 +51,8 @@ static void setstatus(char *fmt, ...);
 /* global variables */
 static int edit = 1;
 static int cury, curx; /* TODO rename y,x or posy,posx */
-static Cursor cur; /* TODO be mindful of the stack */
-/* TODO firstline? */
+static Position cur; /* TODO be mindful of the stack */
+static Line *fstln;
 static Mode mode = NORMAL;
 static char *status = NULL;
 
@@ -66,7 +66,7 @@ init(void)
 	noecho();
 	cury = curx = 0;
 	cur.o = 0;
-	cur.l = newline();
+	cur.l = fstln = newline(NULL, NULL);
 	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
 }
 
@@ -129,7 +129,12 @@ runcmd(char *cmd)
 void
 draw(void)
 {
-	mvprintw(0, 0, "%s", cur.l->s); /* TODO print all lines */
+	Line *l;
+
+	move(0,0);
+	for (l = fstln; l; l = l->n)
+		printw("%s\n", l->s); /* TODO consider terminal size */
+
 	mvprintw(LINES-1, 0, status); /* TODO getmaxy() */
 	move(cury, curx);
 	refresh();
@@ -151,47 +156,59 @@ insertch(int c) /* TODO change variable name */
 			break;
 		s[i] = getch();
         }
-	insertstr(s);
+	cur = insertstr(cur, s); /* TODO Position from argument? */
+	/* TODO free s? */
 	++curx;
 }
 
-void
-insertstr(char *src)
+Position
+insertstr(Position p, char *src)
 {
+	Line *l = p.l;
+	int o = p.o;
 	size_t totlen = strlen(src); /* TODO trust strlen? */
 	size_t fstlen = lflen(src); /* length until \n or \0 */
-	char *ins = cur.l->s + cur.o; /* insert point */
+	char *ins = l->s + o; /* insert point */
+	Position nxt = p; /* TODO unecessary? or rename new? */
 
-	/* enough space? */
-	if ((cur.l->l + fstlen) >= (BUFSIZ * cur.l->m))
-		return; /* TODO make more space */
+	if ((l->l + fstlen) >= (BUFSIZ * l->m)) /* enough space? */
+		return nxt; /* TODO make more space */
 
-	/* middle of string? */
-	if (cur.l->s[cur.o] != '\0')
-		memmove(ins + fstlen, ins, cur.l->l - cur.o);
+	if (l->s[o] != '\0') /* middle of string? */
+		memmove(ins + fstlen, ins, l->l - o);
 
 	/* insert new stuff */
 	memcpy(ins, src, fstlen);
-	cur.l->l += fstlen;
-	cur.o += fstlen;
+	nxt.l->l += fstlen;
+	nxt.o += fstlen;
 
 	/* the rest goes in a newline */
 	if (fstlen == totlen) /* no newlines */
-		return;
-	setstatus("newline");
-	/* TODO newline(src[totlen-fstlen]) */
+		return nxt;
+	nxt.l = newline(p.l, p.l->n);
+	nxt.o = 0;
+	nxt = insertstr(nxt, src + (totlen-fstlen));
+	nxt = insertstr(nxt, p.l->s + p.o);
+	nxt.o -= (strlen(p.l->s)-p.o); /* as above strlen(p.l->s + p.o) ? */
+	p.l->s[p.o] = '\0';
+	/* TODO clean up this mess. refactor etc */
+	return nxt; /* TODO return insert(... */
 }
 
 Line *
-newline(void)
+newline(Line *p, Line *n)
 {
 	Line *l;
 
 	l = calloc(1, sizeof(Line)); /* TODO error checking */
 	l->s = calloc(BUFSIZ, sizeof(char));
-	l->p = NULL;
-	l->n = NULL;
+	l->l = l->v = 0;
 	l->m = 1;
+	l->p = p;
+	l->n = n;
+
+	if (p) p->n = l;
+	if (n) n->p = l;
 
 	return l;
 }
