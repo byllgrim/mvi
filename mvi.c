@@ -45,6 +45,7 @@ static Position insertstr(Position p, char *str);
 static Line *newline(Line *p, Line *n);
 static void moveleft(void);
 static void moveright(void);
+static void moveup(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
 static int lflen(char *s); /* TODO return size_t? */
 static void setstatus(char *fmt, ...);
@@ -97,6 +98,9 @@ cmdnormal(void)
 		break;
 	case 'i':
 		mode = INSERT;
+		break;
+	case 'k':
+		moveup();
 		break;
 	case 'l':
 		moveright();
@@ -247,11 +251,25 @@ moveright(void)
 	cur.o += chartorune(&p, cur.l->s + cur.o); /* TODO nextlen()? */
 }
 
+void
+moveup(void)
+{
+	if (!cur.l->p) /* is there anything above? */
+		return;
+
+	/* TODO beginning of termheight etc */
+
+	cur.o = MIN(utfnlen(cur.l->s, cur.o), cur.l->p->l - 1); /* TODO utf */
+	cur.l = cur.l->p;
+	cury--;
+	curx = utfnlen(cur.l->s, cur.o); /* TODO scale for looong lines */
+}
+
 int
 prevlen(char *s, int o)
 {
 	int max, i, n;
-	Rune p; /* TODO NULL */
+	Rune p; /* TODO name should be r */
 
 	max = MIN(UTFmax, o);
 	for (i = max; i > 0; i--) {
