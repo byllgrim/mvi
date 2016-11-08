@@ -146,6 +146,8 @@ draw(void)
 	move(0,0);
 	for (l = fstln; l; l = l->n)
 		printw("%s\n", l->s); /* TODO consider terminal size */
+	while (getcury(stdscr) < (getmaxy(stdscr) - 1))
+		printw("~\n");
 
 	mvprintw(LINES-1, 0, status); /* TODO getmaxy() */
 	move(cury, curx);
