@@ -156,9 +156,9 @@ insertch(int c) /* TODO change variable name */
 			break;
 		s[i] = getch();
         }
+	++curx;
 	cur = insertstr(cur, s); /* TODO Position from argument? */
 	/* TODO free s? */
-	++curx;
 }
 
 Position
@@ -185,6 +185,8 @@ insertstr(Position p, char *src)
 	/* the rest goes in a newline */
 	if (fstlen == totlen) /* no newlines */
 		return nxt;
+	curx = 0;
+	cury++; /* TODO movedown(); */
 	nxt.l = newline(p.l, p.l->n);
 	nxt.o = 0;
 	nxt = insertstr(nxt, src + (totlen-fstlen));
