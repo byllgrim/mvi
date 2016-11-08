@@ -44,6 +44,7 @@ static void insertch(int c);
 static Position insertstr(Position p, char *str);
 static Line *newline(Line *p, Line *n);
 static void moveleft(void);
+static void moveright(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
 static int lflen(char *s); /* TODO return size_t? */
 static void setstatus(char *fmt, ...);
@@ -96,6 +97,9 @@ cmdnormal(void)
 		break;
 	case 'i':
 		mode = INSERT;
+		break;
+	case 'l':
+		moveright();
 		break;
 	}
 }
@@ -156,7 +160,7 @@ insertch(int c) /* TODO change variable name */
 			break;
 		s[i] = getch();
         }
-	++curx;
+	++curx; /* TODO moveright()? */
 	cur = insertstr(cur, s); /* TODO Position from argument? */
 	/* TODO free s? */
 }
@@ -224,8 +228,23 @@ moveleft(void)
 	if (!curx) /* is at beginning of termwidth */
 		return; /* TODO crawl upwards */
 
-	--curx;
+	curx--;
 	cur.o -= prevlen(cur.l->s, cur.o);
+}
+
+void
+moveright(void)
+{
+	Rune p;
+
+	if (cur.l->s[cur.o + 1] == '\0') /* is at end of string */
+		return; /* TODO what about insertch? */
+
+	/* TODO end of termwidth */
+	/* TODO end of termheight etc */
+
+	curx++;
+	cur.o += chartorune(&p, cur.l->s + cur.o); /* TODO nextlen()? */
 }
 
 int
