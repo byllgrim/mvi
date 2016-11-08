@@ -46,6 +46,7 @@ static Line *newline(Line *p, Line *n);
 static void moveleft(void);
 static void moveright(void);
 static void moveup(void);
+static void movedown(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
 static int lflen(char *s); /* TODO return size_t? */
 static void setstatus(char *fmt, ...);
@@ -98,6 +99,9 @@ cmdnormal(void)
 		break;
 	case 'i':
 		mode = INSERT;
+		break;
+	case 'j':
+		movedown();
 		break;
 	case 'k':
 		moveup();
@@ -263,6 +267,19 @@ moveup(void)
 	cur.l = cur.l->p;
 	cury--;
 	curx = utfnlen(cur.l->s, cur.o); /* TODO scale for looong lines */
+}
+
+void
+movedown(void)
+{
+	if (!cur.l->n) /* theres nothing below */
+		return;
+
+	/* TODO if nextline is shorter */
+	/* TODO end of termheight etc */
+
+	cur.l = cur.l->n;
+	cury++;
 }
 
 int
