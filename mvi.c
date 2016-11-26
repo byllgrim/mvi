@@ -171,44 +171,44 @@ insertch(int c) /* TODO change variable name */
 		s[i] = getch();
         }
 	++curx; /* TODO moveright()? */
-	cur = insertstr(cur, s); /* TODO Position from argument? */
+	cur = insertstr(cur, s);
 	/* TODO free s? */
 }
 
 Position
 insertstr(Position p, char *src)
 {
-	Line *l = p.l;
-	int o = p.o;
-	size_t totlen = strlen(src); /* TODO trust strlen? */
-	size_t fstlen = lflen(src); /* length until \n or \0 */
-	char *ins = l->s + o; /* insert point */
-	Position nxt = p; /* TODO unecessary? or rename new? */
+	/* Takes a string and inserts it at the given position.
+	 * If there isn't enough space in dest, more will be allocated.
+	 * The previous text must be shifted to make room.
+	 * Upon NL, a new line is made and filled with the remainding text.
+	 * It returns the position after the newly inserted text.
+	 */
 
-	if ((l->l + fstlen) >= (BUFSIZ * l->m)) /* enough space? */
-		return nxt; /* TODO make more space */
+	size_t len;
+	char *ins;
+	char *tail;
 
-	if (l->s[o] != '\0') /* middle of string? */
-		memmove(ins + fstlen, ins, l->l - o);
+	len = lflen(src);
+	if ((p.l->l + len) >= BUFSIZ*p.l->m) /* enough space? */
+		return p; /* TODO allocate more room */
 
-	/* insert new stuff */
-	memcpy(ins, src, fstlen);
-	nxt.l->l += fstlen;
-	nxt.o += fstlen;
+	ins = p.l->s + p.o; /* TODO use */
+	memmove(p.l->s + p.o + len, p.l->s + p.o, strlen(p.l->s + p.o)); /* make room */
+	memmove(p.l->s + p.o, src, len); /* insert text */
+	p.o += len; /* update offset */
 
-	/* the rest goes in a newline */
-	if (fstlen == totlen) /* no newlines */
-		return nxt;
-	curx = 0;
-	cury++; /* TODO movedown(); */
-	nxt.l = newline(p.l, p.l->n);
-	nxt.o = 0;
-	nxt = insertstr(nxt, src + (totlen-fstlen));
-	nxt = insertstr(nxt, p.l->s + p.o);
-	nxt.o -= (strlen(p.l->s)-p.o); /* as above strlen(p.l->s + p.o) ? */
-	p.l->s[p.o] = '\0';
-	/* TODO clean up this mess. refactor etc */
-	return nxt; /* TODO return insert(... */
+	if (len < strlen(src)) { /* TODO safe string handling */
+		tail = p.l->s + p.o;
+		p.l = newline(p.l, p.l->n);
+		p.o = 0;
+		p = insertstr(p, src + len + 1);
+		p = insertstr(p, tail);
+		p.o -= strlen(tail);
+		tail[0] = '\0';
+	}
+
+	return p;
 }
 
 Line *
@@ -300,7 +300,7 @@ prevlen(char *s, int o)
 }
 
 int
-lflen(char *s)
+lflen(char *s) /* length until line feed */
 {
 	char *lf;
 	int len;
@@ -308,7 +308,7 @@ lflen(char *s)
 	if ((lf = strchr(s, '\n'))) /* search for Line Feed */
 		len = lf - s;
 	else
-		len = strlen(s);
+		len = strlen(s); /* TODO trust strlen? */
 
 	return len;
 }
