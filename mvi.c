@@ -157,12 +157,15 @@ void
 cmdcommand(void)
 {
 	char *cmd;
-	int i = 0;
+	int i;
 
-	cmd = calloc(BUFSIZ, sizeof(char));
+	cmd = calloc(BUFSIZ, sizeof(char)); /* TODO paranoid checking */
+	for (i = 0, move(LINES-1, 0); i < getmaxx(stdscr); i++)
+		addch(' ');
 	/* TODO clear status */
 	mvprintw(LINES-1, 0, ":");
 
+	i = 0;
 	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i]))
 		printw("%c", cmd[i++]);
 
