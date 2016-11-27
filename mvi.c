@@ -86,6 +86,7 @@ loadfile(char *name)
 {
 	FILE *f;
 	char *buf;
+	Position p;
 
 	if (!(f = fopen(name, "r")))
 		die("loadfile:"); /* TODO graceful handling */
@@ -93,8 +94,9 @@ loadfile(char *name)
 	if (!(buf = calloc(BUFSIZ, sizeof(char))))
 		die("loadfile:"); /* TODO graceful handling */
 
+	p = cur; /* TODO delete old lines if opening with command o */
 	while (fread(buf, sizeof(char), BUFSIZ/2, f))
-		cur = insertstr(cur, buf);
+		p = insertstr(p, buf);
 
 	fclose(f);
 	/* TODO remove last newline */
