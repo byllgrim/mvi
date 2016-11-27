@@ -230,6 +230,8 @@ draw(void)
 
 	move(0,0);
 	for (l = fstln; l; l = l->n) {
+		if ((getmaxy(stdscr) - getcury(stdscr)) <= 1) /* TODO vlen */
+			break;
 		printw("%s\n", l->s); /* TODO consider terminal size */
 		if (l == cur.l)
 			y = getcury(stdscr) - 1;
