@@ -194,7 +194,7 @@ insertstr(Position p, char *src)
 		return p; /* TODO allocate more room */
 
 	ins = p.l->s + p.o;
-	memmove(ins + len, ins, strlen(ins)); /* make room */
+	memmove(ins + len, ins, strlen(ins)); /* make room TODO only if needed*/
 	memmove(ins, src, len); /* insert text */
 	p.o += len; /* update offset */
 
@@ -202,8 +202,8 @@ insertstr(Position p, char *src)
 		p.l = newline(p.l, p.l->n);
 		p.o = 0;
 		p = insertstr(p, src + len + 1);
-		insertstr(p, ins);
-		ins[0] = '\0';
+		insertstr(p, ins + len);
+		ins[len] = '\0';
 	}
 
 	return p;
