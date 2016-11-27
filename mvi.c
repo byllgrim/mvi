@@ -234,7 +234,9 @@ draw(void)
 			break;
 		printw("%s\n", l->s); /* TODO consider terminal size */
 		if (l == cur.l)
-			y = getcury(stdscr) - 1;
+			y = getcury(stdscr) /* TODO prettify */
+			    - (utflen(l->s)/getmaxx(stdscr) + 1)
+			    + (utfnlen(l->s, cur.o)/getmaxx(stdscr));
 	}
 	while (getcury(stdscr) < (getmaxy(stdscr) - 1))
 		printw("~\n");
