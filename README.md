@@ -1,6 +1,8 @@
 # mvi
 Minimal vi clone
 
+WARNING! Work in progress.
+
 ## Commands
 Only the most basic functionality is welcomed:
 
