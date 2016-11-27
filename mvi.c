@@ -374,6 +374,9 @@ movedown(void)
 	/* TODO if nextline is shorter */
 	/* TODO end of termheight etc */
 
+	cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->n->s)-1);
+	/* TODO proper utf vlen to offset */
+
 	cur.l = cur.l->n;
 }
 
