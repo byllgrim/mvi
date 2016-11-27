@@ -1,5 +1,6 @@
 /* See LICENSE file */
 #include <curses.h>
+#include <errno.h>
 #include <locale.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -35,7 +36,8 @@ typedef struct {
 
 /* function declarations */
 static void die(char *fmt, ...);
-static void loadfile(char *name);
+static void loadfile(char *name); /* TODO return values */
+static void savefile(char *name);
 static void init(void);
 static void cmdinsert(void); /* TODO change name */
 static void cmdnormal(void); /* TODO change name? */
@@ -101,6 +103,29 @@ loadfile(char *name)
 
 	if (p.l->s[0] == '\0')
 		rmline(p.l);
+	/* TODO save filename for later */
+	fclose(f);
+}
+
+void
+savefile(char *name)
+{
+	FILE *f;
+	Line *l;
+
+	if (!name || (name[0] == '\0')) /* TODO saved filename. validrune */
+		return;
+
+	if (!(f = fopen(name, "w"))) {
+		setstatus("savefile: %s", strerror(errno));
+		return;
+	}
+
+	for (l = fstln; l; l = l->n)
+		fprintf(f, "%s\n", l->s);
+
+	setstatus("\"%s\"", name);
+	touched = 0;
 	fclose(f);
 }
 
@@ -172,6 +197,7 @@ cmdcommand(void)
 	i = 0;
 	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i]))
 		printw("%c", cmd[i++]);
+	cmd[i] = '\0';
 
 	runcmd(cmd);
 	/* TODO free(cmd) */
@@ -182,11 +208,17 @@ void
 runcmd(char *cmd)
 {
 	/* TODO more commands. recursive descent? */
+	/* As for loop? With table? */
 	if (cmd[0] == 'q') {
 		if (!touched || (cmd[1] == '!'))
 			edit = 0;
 		else
 			setstatus("unsaved changes; q! to override");
+	} else if (cmd[0] == 'w') {
+		if ((cmd[1] == ' ') && (cmd[2] != '\0'))
+			savefile(cmd + 2);
+		else
+			savefile(NULL);
 	}
 }
 
