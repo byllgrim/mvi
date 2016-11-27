@@ -55,6 +55,7 @@ static void setstatus(char *fmt, ...);
 
 /* global variables */
 static int edit = 1;
+static int touched = 0;
 static Position cur; /* TODO be mindful of the stack */
 static Line *fstln;
 static Mode mode = NORMAL;
@@ -121,8 +122,10 @@ cmdinsert(void)
 	if (ISESC(c)) {
 		mode = NORMAL;
 		moveleft();
-	} else
+	} else {
 		insertch(c);
+		touched = 1;
+	}
 }
 
 void
@@ -172,8 +175,12 @@ void
 runcmd(char *cmd)
 {
 	/* TODO more commands. recursive descent? */
-	if (cmd[0] == 'q') /* TODO save guard */
-		edit = 0;
+	if (cmd[0] == 'q') {
+		if (!touched || (cmd[1] == '!'))
+			edit = 0;
+		else
+			setstatus("unsaved changes; q! to override");
+	}
 }
 
 void
@@ -297,7 +304,7 @@ moveright(void)
 void
 moveup(void)
 {
-	if (!cur.l->p) /* is there anything above? */
+	if (!cur.l->p) /* any lines above? */
 		return;
 
 	/* TODO beginning of termheight etc */
