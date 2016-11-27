@@ -45,6 +45,7 @@ static void draw(void);
 static void insertch(int c);
 static Position insertstr(Position p, char *str);
 static Line *newline(Line *p, Line *n);
+static void rmline(Line *l);
 static void moveleft(void);
 static void moveright(void);
 static void moveup(void);
@@ -98,8 +99,9 @@ loadfile(char *name)
 	while (fread(buf, sizeof(char), BUFSIZ/2, f))
 		p = insertstr(p, buf);
 
+	if (p.l->s[0] == '\0')
+		rmline(p.l);
 	fclose(f);
-	/* TODO remove last newline */
 }
 
 void
@@ -281,6 +283,16 @@ newline(Line *p, Line *n)
 	if (n) n->p = l;
 
 	return l;
+}
+
+void
+rmline(Line *l)
+{
+	l->p->n = l->n;
+	if (l->n)
+		l->n->p = l->p;
+	free(l->s); /* TODO if (l->s) */
+	/* TODO free(l) */
 }
 
 void
