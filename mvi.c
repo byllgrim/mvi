@@ -183,29 +183,28 @@ insertstr(Position p, char *src)
 	 * The previous text must be shifted to make room.
 	 * Upon NL, a new line is made and filled with the remainding text.
 	 * It returns the position after the newly inserted text.
+	 * TODO remove this comment when confirmed functionality.
 	 */
 
 	size_t len;
 	char *ins;
-	char *tail;
 
 	len = lflen(src);
 	if ((p.l->l + len) >= BUFSIZ*p.l->m) /* enough space? */
 		return p; /* TODO allocate more room */
 
-	ins = p.l->s + p.o; /* TODO use */
-	memmove(p.l->s + p.o + len, p.l->s + p.o, strlen(p.l->s + p.o)); /* make room */
-	memmove(p.l->s + p.o, src, len); /* insert text */
+	ins = p.l->s + p.o;
+	memmove(ins + len, ins, strlen(ins)); /* make room */
+	memmove(ins, src, len); /* insert text */
 	p.o += len; /* update offset */
 
 	if (len < strlen(src)) { /* TODO safe string handling */
-		tail = p.l->s + p.o;
 		p.l = newline(p.l, p.l->n);
 		p.o = 0;
 		p = insertstr(p, src + len + 1);
-		p = insertstr(p, tail);
-		p.o -= strlen(tail);
-		tail[0] = '\0';
+		p = insertstr(p, ins);
+		p.o -= strlen(ins);
+		ins[0] = '\0';
 	}
 
 	return p;
