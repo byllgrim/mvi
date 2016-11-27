@@ -55,7 +55,7 @@ static void setstatus(char *fmt, ...);
 
 /* global variables */
 static int edit = 1;
-static int cury, curx; /* TODO rename y,x or posy,posx */
+static int cury;
 static Position cur; /* TODO be mindful of the stack */
 static Line *fstln;
 static Mode mode = NORMAL;
@@ -107,7 +107,7 @@ init(void)
 	initscr();
 	raw();
 	noecho();
-	cury = curx = 0;
+	cury = 0;
 	cur.o = 0;
 	cur.l = fstln = newline(NULL, NULL);
 	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
@@ -182,6 +182,7 @@ void
 draw(void)
 {
 	Line *l;
+	size_t x;
 
 	move(0,0);
 	for (l = fstln; l; l = l->n)
@@ -191,8 +192,8 @@ draw(void)
 
 	mvprintw(LINES-1, 0, status); /* TODO getmaxy() */
 
-	curx = utfnlen(cur.l->s, cur.o) % 80; /* TODO get termwidth */
-	move(cury, curx);
+	x = utfnlen(cur.l->s, cur.o) % 80; /* TODO get termwidth */
+	move(cury, x);
 
 	refresh();
 }
@@ -213,7 +214,6 @@ insertch(int c) /* TODO change variable name */
 			break;
 		s[i] = getch();
 	}
-	++curx; /* TODO moveright()? */
 	cur = insertstr(cur, s);
 	/* TODO free s? */
 }
@@ -304,7 +304,6 @@ moveup(void)
 	cur.o = MIN(utfnlen(cur.l->s, cur.o), cur.l->p->l - 1); /* TODO utf */
 	cur.l = cur.l->p;
 	cury--;
-	curx = utfnlen(cur.l->s, cur.o); /* TODO scale for looong lines */
 }
 
 void
