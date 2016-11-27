@@ -202,8 +202,7 @@ insertstr(Position p, char *src)
 		p.l = newline(p.l, p.l->n);
 		p.o = 0;
 		p = insertstr(p, src + len + 1);
-		p = insertstr(p, ins);
-		p.o -= strlen(ins);
+		insertstr(p, ins);
 		ins[0] = '\0';
 	}
 
