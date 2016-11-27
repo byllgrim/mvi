@@ -30,10 +30,11 @@ struct Line {
 typedef struct {
 	Line *l;
 	int o;  /* offset */
-	        /* TODO visual offset? */
+	/* TODO visual offset? */
 } Position;
 
 /* function declarations */
+static void die(char *fmt, ...);
 static void init(void);
 static void cmdinsert(void); /* TODO change name */
 static void cmdnormal(void); /* TODO change name? */
@@ -60,6 +61,25 @@ static Mode mode = NORMAL;
 static char *status = NULL;
 
 /* function definitions */
+void
+die(char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+
+	if (fmt[0] && fmt[strlen(fmt)-1] == ':') {
+		fputc(' ', stderr);
+		perror(NULL);
+	} else {
+		fputc('\n', stderr);
+	}
+
+	exit(1);
+}
+
 void
 init(void)
 {
@@ -169,7 +189,7 @@ insertch(int c) /* TODO change variable name */
 		if (fullrune(s, i))
 			break;
 		s[i] = getch();
-        }
+	}
 	++curx; /* TODO moveright()? */
 	cur = insertstr(cur, s);
 	/* TODO free s? */
@@ -322,8 +342,11 @@ setstatus(char *fmt, ...)
 }
 
 int
-main()
+main(int argc, char *argv[])
 {
+	if (argc > 2)
+		die("usage: %s [file]", argv[0]);
+
 	init();
 
 	while (edit) {
