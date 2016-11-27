@@ -35,6 +35,7 @@ typedef struct {
 
 /* function declarations */
 static void die(char *fmt, ...);
+static void loadfile(char *name);
 static void init(void);
 static void cmdinsert(void); /* TODO change name */
 static void cmdnormal(void); /* TODO change name? */
@@ -77,7 +78,26 @@ die(char *fmt, ...)
 		fputc('\n', stderr);
 	}
 
-	exit(1);
+	exit(1); /* TODO handle curses settings */
+}
+
+void
+loadfile(char *name)
+{
+	FILE *f;
+	char *buf;
+
+	if (!(f = fopen(name, "r")))
+		die("loadfile:"); /* TODO graceful handling */
+
+	if (!(buf = calloc(BUFSIZ, sizeof(char))))
+		die("loadfile:"); /* TODO graceful handling */
+
+	while (fread(buf, sizeof(char), BUFSIZ/2, f))
+		cur = insertstr(cur, buf);
+
+	fclose(f);
+	/* TODO remove last newline */
 }
 
 void
@@ -348,6 +368,9 @@ main(int argc, char *argv[])
 		die("usage: %s [file]", argv[0]);
 
 	init();
+
+	if (argc == 2)
+		loadfile(argv[1]);
 
 	while (edit) {
 		draw();
