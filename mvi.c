@@ -174,7 +174,7 @@ void
 runcmd(char *cmd)
 {
 	/* TODO more commands. recursive descent? */
-	if (cmd[0] == 'q')
+	if (cmd[0] == 'q') /* TODO save guard */
 		edit = 0;
 }
 
@@ -278,6 +278,7 @@ moveleft(void)
 
 	curx--;
 	cur.o -= prevlen(cur.l->s, cur.o);
+	/* TODO rethink movement system */
 }
 
 void
