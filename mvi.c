@@ -55,7 +55,6 @@ static void setstatus(char *fmt, ...);
 
 /* global variables */
 static int edit = 1;
-static int cury;
 static Position cur; /* TODO be mindful of the stack */
 static Line *fstln;
 static Mode mode = NORMAL;
@@ -107,7 +106,6 @@ init(void)
 	initscr();
 	raw();
 	noecho();
-	cury = 0;
 	cur.o = 0;
 	cur.l = fstln = newline(NULL, NULL);
 	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
@@ -182,18 +180,21 @@ void
 draw(void)
 {
 	Line *l;
-	size_t x;
+	size_t x, y;
 
 	move(0,0);
-	for (l = fstln; l; l = l->n)
+	for (l = fstln; l; l = l->n) {
 		printw("%s\n", l->s); /* TODO consider terminal size */
+		if (l == cur.l)
+			y = getcury(stdscr) - 1;
+	}
 	while (getcury(stdscr) < (getmaxy(stdscr) - 1))
 		printw("~\n");
 
 	mvprintw(LINES-1, 0, status); /* TODO getmaxy() */
 
 	x = utfnlen(cur.l->s, cur.o) % 80; /* TODO get termwidth */
-	move(cury, x);
+	move(y, x);
 
 	refresh();
 }
@@ -303,7 +304,6 @@ moveup(void)
 
 	cur.o = MIN(utfnlen(cur.l->s, cur.o), cur.l->p->l - 1); /* TODO utf */
 	cur.l = cur.l->p;
-	cury--;
 }
 
 void
@@ -312,11 +312,11 @@ movedown(void)
 	if (!cur.l->n) /* theres nothing below */
 		return;
 
+	/* TODO utf and offset in next line */
 	/* TODO if nextline is shorter */
 	/* TODO end of termheight etc */
 
 	cur.l = cur.l->n;
-	cury++;
 }
 
 int
