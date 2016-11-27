@@ -29,7 +29,7 @@ struct Line {
 
 typedef struct {
 	Line *l;
-	int o;  /* offset */
+	size_t o;  /* offset */
 	/* TODO visual offset? */
 } Position;
 
@@ -190,7 +190,10 @@ draw(void)
 		printw("~\n");
 
 	mvprintw(LINES-1, 0, status); /* TODO getmaxy() */
+
+	curx = utfnlen(cur.l->s, cur.o) % 80; /* TODO get termwidth */
 	move(cury, curx);
+
 	refresh();
 }
 
@@ -270,13 +273,9 @@ newline(Line *p, Line *n)
 void
 moveleft(void)
 {
-	if (!cur.o) /* is at beginning of string */
+	if (!cur.o) /* beginning of string */
 		return;
 
-	if (!curx) /* is at beginning of termwidth */
-		return; /* TODO crawl upwards */
-
-	curx--;
 	cur.o -= prevlen(cur.l->s, cur.o);
 	/* TODO rethink movement system */
 }
@@ -286,13 +285,10 @@ moveright(void)
 {
 	Rune p;
 
-	if (cur.l->s[cur.o + 1] == '\0') /* is at end of string */
-		return; /* TODO what about insertch? */
+	/* TODO cur.o == cur.l->l */
+	if (cur.l->s[cur.o + 1] == '\0') /* end of string */
+		return;
 
-	/* TODO end of termwidth */
-	/* TODO end of termheight etc */
-
-	curx++;
 	cur.o += chartorune(&p, cur.l->s + cur.o); /* TODO nextlen()? */
 }
 
