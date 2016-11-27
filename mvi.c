@@ -362,7 +362,9 @@ moveup(void)
 
 	/* TODO beginning of termheight etc */
 
-	cur.o = MIN(utfnlen(cur.l->s, cur.o), cur.l->p->l - 1); /* TODO utf */
+	cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->p->s)-1);
+	/* TODO proper utf vlen to offset */
+
 	cur.l = cur.l->p;
 }
 
