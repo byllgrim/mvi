@@ -371,16 +371,27 @@ moveup(void)
 void
 movedown(void)
 {
-	if (!cur.l->n) /* theres nothing below */
+	size_t taillen, idlecol, maxx;
+
+	maxx = getmaxx(stdscr);
+	taillen = utflen(cur.l->s + cur.o);
+	idlecol = maxx - getcurx(stdscr);
+	if (taillen > idlecol) {
+		if (taillen > maxx)
+			cur.o += maxx; /* TODO utf */
+		else
+			cur.o = strlen(cur.l->s) - 1;
+		return;
+	}
+
+	if (!cur.l->n)
 		return;
 
 	/* TODO utf and offset in next line */
-	/* TODO if nextline is shorter */
 	/* TODO end of termheight etc */
 
-	cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->n->s)-1);
 	/* TODO proper utf vlen to offset */
-
+	cur.o = MIN((size_t)getcurx(stdscr), utflen(cur.l->n->s)-1);
 	cur.l = cur.l->n;
 }
 
