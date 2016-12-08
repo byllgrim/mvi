@@ -357,14 +357,22 @@ moveright(void)
 void
 moveup(void)
 {
-	if (!cur.l->p) /* any lines above? */
+	size_t hlen, maxx;
+
+	hlen = utfnlen(cur.l->s, cur.o);
+	maxx = getmaxx(stdscr);
+	if (hlen >= maxx) {
+		cur.o -= maxx;
+		/* TODO saved offset? */
+		return;
+	}
+
+	if (!cur.l->p)
 		return;
 
 	/* TODO beginning of termheight etc */
-
-	cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->p->s)-1);
 	/* TODO proper utf vlen to offset */
-
+	cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->p->s)-1);
 	cur.l = cur.l->p;
 }
 
@@ -387,9 +395,7 @@ movedown(void)
 	if (!cur.l->n)
 		return;
 
-	/* TODO utf and offset in next line */
 	/* TODO end of termheight etc */
-
 	/* TODO proper utf vlen to offset */
 	cur.o = MIN((size_t)getcurx(stdscr), utflen(cur.l->n->s)-1);
 	cur.l = cur.l->n;
