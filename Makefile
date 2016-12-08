@@ -1,13 +1,18 @@
-CPPFLAGS = -D_POSIX_C_SOURCE=200112L
-CFLAGS = -std=c89 -pedantic-errors -Wall -Wextra -Os ${CPPFLAGS}
-LDFLAGS = -lncursesw -lutf
-PREFIX = /usr/local
+include config.mk
 
-all:
-	cc -o mvi ${CFLAGS} mvi.c ${LDFLAGS}
+SRC = mvi.c
+OBJ = ${SRC:.c=.o}
+
+all: mvi
+
+mvi: ${OBJ}
+	${CC} -o $@ ${OBJ} ${LDFLAGS}
+
+.c.o:
+	${CC} -c ${CFLAGS} $<
 
 clean:
-	rm -f mvi
+	rm -f mvi ${OBJ}
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
