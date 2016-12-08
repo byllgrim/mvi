@@ -187,10 +187,10 @@ void
 cmdcommand(void)
 {
 	char *cmd;
-	int i;
+	size_t i;
 
 	cmd = calloc(BUFSIZ, sizeof(char)); /* TODO paranoid checking */
-	for (i = 0, move(LINES - 1, 0); i < getmaxx(stdscr); i++)
+	for (i = 0, move(LINES - 1, 0); i < (size_t)COLS; i++)
 		addch(' ');
 	/* TODO clear status */
 	mvprintw(LINES - 1, 0, ":");
@@ -236,15 +236,15 @@ draw(void)
 		printw("%s\n", l->s + o); /* TODO consider terminal size */
 		if (l == cur.l)
 			y = getcury(stdscr) /* TODO prettify */
-			    - (utflen(l->s)/getmaxx(stdscr) + 1)
-			    + (utfnlen(l->s, cur.o)/getmaxx(stdscr));
+			    - (utflen(l->s) / COLS + 1)
+			    + (utfnlen(l->s, cur.o) / COLS);
 	}
 	while (getcury(stdscr) < LINES - 1)
 		printw("~\n");
 
 	mvprintw(LINES - 1, 0, status);
 
-	x = utfnlen(cur.l->s, cur.o) % 80; /* TODO get termwidth */
+	x = utfnlen(cur.l->s, cur.o) % COLS;
 	move(y, x);
 	refresh();
 }
@@ -357,17 +357,16 @@ moveright(void)
 void
 moveup(void)
 {
-	size_t hlen, maxx;
+	size_t hlen;
 
 	hlen = utfnlen(cur.l->s, cur.o);
-	maxx = getmaxx(stdscr);
 
-	if (!cur.l->p && hlen < maxx)
+	if (!cur.l->p && hlen < (size_t)COLS) /* TODO casts are harmful? */
 		return;
 
 	/* TODO theres a bug when moving up to long line */
-	if (hlen >= maxx) {
-		cur.o -= maxx;
+	if (hlen >= (size_t)COLS) {
+		cur.o -= COLS;
 		/* TODO saved offset? */
 		return;
 	} else {
@@ -384,18 +383,17 @@ moveup(void)
 void
 movedown(void)
 {
-	size_t taillen, idlecol, maxx;
+	size_t taillen, idlecol;
 
-	maxx = getmaxx(stdscr);
 	taillen = utflen(cur.l->s + cur.o);
-	idlecol = maxx - getcurx(stdscr);
+	idlecol = COLS - getcurx(stdscr);
 
 	if (!cur.l->n && taillen <= idlecol)
 		return;
 
 	if (taillen > idlecol) {
-		if (taillen > maxx)
-			cur.o += maxx; /* TODO utf */
+		if (taillen > (size_t)COLS)
+			cur.o += COLS; /* TODO utf */
 		else
 			cur.o = strlen(cur.l->s) - 1;
 	} else {
@@ -406,8 +404,8 @@ movedown(void)
 	}
 
 	if (getcury(stdscr) >= LINES - 2) {
-		if (utflen(drw.l->s + drw.o) > maxx)
-			drw.o += maxx;
+		if (utflen(drw.l->s + drw.o) > (size_t)COLS)
+			drw.o += COLS;
 		else {
 			drw.l = drw.l->n;
 			drw.o = 0;
