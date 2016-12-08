@@ -190,10 +190,10 @@ cmdcommand(void)
 	int i;
 
 	cmd = calloc(BUFSIZ, sizeof(char)); /* TODO paranoid checking */
-	for (i = 0, move(LINES-1, 0); i < getmaxx(stdscr); i++)
+	for (i = 0, move(LINES - 1, 0); i < getmaxx(stdscr); i++)
 		addch(' ');
 	/* TODO clear status */
-	mvprintw(LINES-1, 0, ":");
+	mvprintw(LINES - 1, 0, ":");
 
 	i = 0;
 	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i]))
@@ -231,7 +231,7 @@ draw(void)
 
 	move(0,0);
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
-		if ((getmaxy(stdscr) - getcury(stdscr)) <= 1) /* TODO vlen */
+		if (LINES - getcury(stdscr) <= 1) /* TODO vlen */
 			break;
 		printw("%s\n", l->s + o); /* TODO consider terminal size */
 		if (l == cur.l)
@@ -239,14 +239,13 @@ draw(void)
 			    - (utflen(l->s)/getmaxx(stdscr) + 1)
 			    + (utfnlen(l->s, cur.o)/getmaxx(stdscr));
 	}
-	while (getcury(stdscr) < (getmaxy(stdscr) - 1))
+	while (getcury(stdscr) < LINES - 1)
 		printw("~\n");
 
-	mvprintw(LINES-1, 0, status); /* TODO getmaxy() */
+	mvprintw(LINES - 1, 0, status);
 
 	x = utfnlen(cur.l->s, cur.o) % 80; /* TODO get termwidth */
 	move(y, x);
-
 	refresh();
 }
 
@@ -406,7 +405,7 @@ movedown(void)
 		cur.l = cur.l->n;
 	}
 
-	if (getcury(stdscr) >= getmaxy(stdscr)-2) {
+	if (getcury(stdscr) >= LINES - 2) {
 		if (utflen(drw.l->s + drw.o) > maxx)
 			drw.o += maxx;
 		else {
