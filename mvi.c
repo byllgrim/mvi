@@ -227,13 +227,13 @@ void
 draw(void)
 {
 	Line *l;
-	size_t x, y;
+	size_t x, y, o;
 
 	move(0,0);
-	for (l = drw.l; l; l = l->n) {
+	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
 		if ((getmaxy(stdscr) - getcury(stdscr)) <= 1) /* TODO vlen */
 			break;
-		printw("%s\n", l->s); /* TODO consider terminal size */
+		printw("%s\n", l->s + o); /* TODO consider terminal size */
 		if (l == cur.l)
 			y = getcury(stdscr) /* TODO prettify */
 			    - (utflen(l->s)/getmaxx(stdscr) + 1)
@@ -406,8 +406,14 @@ movedown(void)
 		cur.l = cur.l->n;
 	}
 
-	if (getcury(stdscr) >= getmaxy(stdscr)-2)
-		drw.l = drw.l->n;
+	if (getcury(stdscr) >= getmaxy(stdscr)-2) {
+		if (utflen(drw.l->s + drw.o) > maxx)
+			drw.o += maxx;
+		else {
+			drw.l = drw.l->n;
+			drw.o = 0;
+		}
+	}
 }
 
 int
