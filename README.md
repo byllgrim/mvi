@@ -6,11 +6,9 @@ WARNING! Work in progress.
 ## Commands
 Only the most basic functionality is welcomed:
 
-	:o file - open file [*]
 	:q      - quit
 	:q!     - force quit
 	:w file - write to file
-	a       - append [*]
 	dd      - delete line [*]
 	h       - left
 	i       - insert
