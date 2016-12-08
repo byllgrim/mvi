@@ -60,6 +60,7 @@ static void setstatus(char *fmt, ...);
 static int edit = 1;
 static int touched = 0;
 static Position cur; /* TODO be mindful of the stack */
+static Position drw; /* first to be drawn on screen */
 static Line *fstln;
 static Mode mode = NORMAL;
 static char *status = NULL;
@@ -136,8 +137,8 @@ init(void)
 	initscr();
 	raw();
 	noecho();
-	cur.o = 0;
-	cur.l = fstln = newline(NULL, NULL);
+	cur.o = drw.o = 0;
+	cur.l = drw.l = fstln = newline(NULL, NULL);
 	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
 }
 
@@ -229,7 +230,7 @@ draw(void)
 	size_t x, y;
 
 	move(0,0);
-	for (l = fstln; l; l = l->n) {
+	for (l = drw.l; l; l = l->n) {
 		if ((getmaxy(stdscr) - getcury(stdscr)) <= 1) /* TODO vlen */
 			break;
 		printw("%s\n", l->s); /* TODO consider terminal size */
@@ -376,6 +377,9 @@ moveup(void)
 		cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->p->s)-1);
 		cur.l = cur.l->p;
 	}
+
+	if (!getcury(stdscr))
+		drw.l = drw.l->p;
 }
 
 void
@@ -401,6 +405,9 @@ movedown(void)
 		cur.o = MIN((size_t)getcurx(stdscr), utflen(cur.l->n->s)-1);
 		cur.l = cur.l->n;
 	}
+
+	if (getcury(stdscr) >= getmaxy(stdscr)-2)
+		drw.l = drw.l->n;
 }
 
 int
