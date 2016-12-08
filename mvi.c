@@ -361,19 +361,21 @@ moveup(void)
 
 	hlen = utfnlen(cur.l->s, cur.o);
 	maxx = getmaxx(stdscr);
+
+	if (!cur.l->p && hlen < maxx)
+		return;
+
+	/* TODO theres a bug when moving up to long line */
 	if (hlen >= maxx) {
 		cur.o -= maxx;
 		/* TODO saved offset? */
 		return;
+	} else {
+		/* TODO beginning of termheight etc */
+		/* TODO proper utf vlen to offset */
+		cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->p->s)-1);
+		cur.l = cur.l->p;
 	}
-
-	if (!cur.l->p)
-		return;
-
-	/* TODO beginning of termheight etc */
-	/* TODO proper utf vlen to offset */
-	cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->p->s)-1);
-	cur.l = cur.l->p;
 }
 
 void
@@ -384,21 +386,21 @@ movedown(void)
 	maxx = getmaxx(stdscr);
 	taillen = utflen(cur.l->s + cur.o);
 	idlecol = maxx - getcurx(stdscr);
+
+	if (!cur.l->n && taillen <= idlecol)
+		return;
+
 	if (taillen > idlecol) {
 		if (taillen > maxx)
 			cur.o += maxx; /* TODO utf */
 		else
 			cur.o = strlen(cur.l->s) - 1;
-		return;
+	} else {
+		/* TODO end of termheight etc */
+		/* TODO proper utf vlen to offset */
+		cur.o = MIN((size_t)getcurx(stdscr), utflen(cur.l->n->s)-1);
+		cur.l = cur.l->n;
 	}
-
-	if (!cur.l->n)
-		return;
-
-	/* TODO end of termheight etc */
-	/* TODO proper utf vlen to offset */
-	cur.o = MIN((size_t)getcurx(stdscr), utflen(cur.l->n->s)-1);
-	cur.l = cur.l->n;
 }
 
 int
