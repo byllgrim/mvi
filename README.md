@@ -10,20 +10,14 @@ Only the most basic functionality is welcomed:
 	:q!     - force quit
 	:w file - write to file
 	dd      - delete line [*]
-	h       - left
+	h,j,k,l - left, down, up, right
 	i       - insert
-	j       - down
-	k       - up
-	l       - right
 	x       - delete character [*]
 
 [*] Not implemented. Should it be?
 
-Searching, substituting, etc does not have a place here.
-Such could rather settle in a fork.
+Search, substitute, etc, should rather be in a fork.
 
 ## Dependencies
-* ncursesw
+* ncursesw (I plan to remove this dependency)
 * [libutf](http://git.suckless.org/libutf/)
-
-I have plans to remove the ncurses dependency.
