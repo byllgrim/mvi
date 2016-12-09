@@ -11,6 +11,8 @@
 #define ISESC(c) (c == 27)
 /* TODO VLEN use utflen? */
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
+#define CURLINE getcury(stdscr) /* omitted () to match curses' LINES */
+#define CURCOL getcurx(stdscr)
 
 /* types */
 typedef enum {
@@ -232,14 +234,14 @@ draw(void)
 	move(0,0);
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
 		if (l == cur.l) {
-			y = getcury(stdscr);
+			y = CURLINE;
 			y += utfnlen(l->s, cur.o) / COLS;
 		}
-		for (i = o; l->s[i] && LINES - getcury(stdscr) - 1; i++)
+		for (i = o; l->s[i] && LINES - CURLINE - 1; i++)
 			printw("%c", l->s[i]);
 		printw("\n");
 	}
-	while (getcury(stdscr) < LINES - 1)
+	while (CURLINE < LINES - 1)
 		printw("~\n");
 
 	mvprintw(LINES - 1, 0, status); /* TODO printstatus() with clearing */
@@ -376,7 +378,7 @@ moveup(void)
 		cur.l = cur.l->p;
 	}
 
-	if (!getcury(stdscr))
+	if (!CURLINE)
 		drw.l = drw.l->p;
 }
 
@@ -386,7 +388,7 @@ movedown(void)
 	size_t taillen, idlecol;
 
 	taillen = utflen(cur.l->s + cur.o);
-	idlecol = COLS - getcurx(stdscr);
+	idlecol = COLS - CURCOL;
 
 	if (!cur.l->n && taillen <= idlecol)
 		return;
@@ -399,11 +401,11 @@ movedown(void)
 	} else {
 		/* TODO end of termheight etc */
 		/* TODO proper utf vlen to offset */
-		cur.o = MIN((size_t)getcurx(stdscr), utflen(cur.l->n->s)-1);
+		cur.o = MIN((size_t)CURCOL, utflen(cur.l->n->s)-1);
 		cur.l = cur.l->n;
 	}
 
-	if (getcury(stdscr) >= LINES - 2) {
+	if (CURLINE >= LINES - 2) {
 		if (utflen(drw.l->s + drw.o) > (size_t)COLS)
 			drw.o += COLS;
 		else {
