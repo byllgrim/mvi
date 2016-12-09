@@ -227,22 +227,22 @@ void
 draw(void)
 {
 	Line *l;
-	size_t x, y, o;
+	size_t x, y, o, i;
 
 	move(0,0);
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
-		if (LINES - getcury(stdscr) <= 1) /* TODO vlen */
-			break;
 		if (l == cur.l) {
 			y = getcury(stdscr);
 			y += utfnlen(l->s, cur.o) / COLS;
 		}
-		printw("%s\n", l->s + o); /* TODO consider terminal size */
+		for (i = o; l->s[i] && LINES - getcury(stdscr) - 1; i++)
+			printw("%c", l->s[i]);
+		printw("\n");
 	}
 	while (getcury(stdscr) < LINES - 1)
 		printw("~\n");
 
-	mvprintw(LINES - 1, 0, status);
+	mvprintw(LINES - 1, 0, status); /* TODO printstatus() with clearing */
 
 	x = utfnlen(cur.l->s, cur.o) % COLS;
 	move(y, x);
