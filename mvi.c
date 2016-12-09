@@ -233,11 +233,11 @@ draw(void)
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
 		if (LINES - getcury(stdscr) <= 1) /* TODO vlen */
 			break;
+		if (l == cur.l) {
+			y = getcury(stdscr);
+			y += utfnlen(l->s, cur.o) / COLS;
+		}
 		printw("%s\n", l->s + o); /* TODO consider terminal size */
-		if (l == cur.l)
-			y = getcury(stdscr) /* TODO prettify */
-			    - (utflen(l->s) / COLS + 1)
-			    + (utfnlen(l->s, cur.o) / COLS);
 	}
 	while (getcury(stdscr) < LINES - 1)
 		printw("~\n");
