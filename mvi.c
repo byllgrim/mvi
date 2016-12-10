@@ -193,8 +193,7 @@ cmdcommand(void)
 	size_t i;
 
 	cmd = calloc(BUFSIZ, sizeof(char)); /* TODO paranoid checking */
-	for (i = 0, move(LINES - 1, 0); i < (size_t)COLS; i++)
-		addch(' ');
+
 	setstatus(":");
 	printstatus();
 
@@ -461,7 +460,7 @@ printstatus(void)
 
 	move(LINES - 1, 0);
 	for (i = 0; i < (size_t)COLS; i++)
-		printw(" "); /* TODO use addch()? */
+		printw(" ");
 	mvprintw(LINES - 1, 0, status);
 }
 
