@@ -57,6 +57,7 @@ static void movedown(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
 static int lflen(char *s); /* TODO return size_t? */
 static void setstatus(char *fmt, ...);
+static void printstatus(void);
 
 /* global variables */
 static int edit = 1;
@@ -194,8 +195,8 @@ cmdcommand(void)
 	cmd = calloc(BUFSIZ, sizeof(char)); /* TODO paranoid checking */
 	for (i = 0, move(LINES - 1, 0); i < (size_t)COLS; i++)
 		addch(' ');
-	/* TODO clear status */
-	mvprintw(LINES - 1, 0, ":");
+	setstatus(":");
+	printstatus();
 
 	i = 0;
 	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i]))
@@ -246,7 +247,7 @@ draw(void)
 	while (CURLINE < LINES - 1)
 		printw("~\n");
 
-	mvprintw(LINES - 1, 0, status); /* TODO printstatus() with clearing */
+	printstatus();
 
 	x = utfnlen(cur.l->s, cur.o) % COLS;
 	move(y, x);
@@ -457,6 +458,17 @@ setstatus(char *fmt, ...)
 	va_start(ap, fmt);
 	vsnprintf(status, BUFSIZ, fmt, ap);
 	va_end(ap);
+}
+
+void
+printstatus(void)
+{
+	size_t i;
+
+	move(LINES - 1, 0);
+	for (i = 0; i < (size_t)COLS; i++)
+		printw(" "); /* TODO use addch()? */
+	mvprintw(LINES - 1, 0, status);
 }
 
 int
