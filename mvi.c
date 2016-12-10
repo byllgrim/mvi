@@ -55,7 +55,7 @@ static void moveright(void);
 static void moveup(void);
 static void movedown(void);
 static int prevlen(char *s, int o); /* TODO dont need arguments? */
-static int lflen(char *s); /* TODO return size_t? */
+static size_t lflen(char *s); /* length til first \n */
 static void setstatus(char *fmt, ...);
 static void printstatus(void);
 
@@ -433,18 +433,15 @@ prevlen(char *s, int o)
 	return 0; /* TODO -1? */
 }
 
-int
-lflen(char *s) /* length until line feed */
+size_t
+lflen(char *s)
 {
 	char *lf;
-	int len;
 
-	if ((lf = strchr(s, '\n'))) /* TODO what about \r? Use macro! */
-		len = lf - s;
+	if ((lf = strchr(s, '\n'))) /* fuck CRLF */
+		return lf - s;
 	else
-		len = strlen(s); /* TODO trust strlen? */
-
-	return len;
+		return strlen(s); /* TODO trust strlen? */
 }
 
 void
