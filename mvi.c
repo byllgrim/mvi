@@ -211,8 +211,6 @@ cmdcommand(void)
 void
 runcmd(char *cmd)
 {
-	/* TODO more commands. recursive descent? */
-	/* As for loop? With table? */
 	if (cmd[0] == 'q') {
 		if (!touched || (cmd[1] == '!'))
 			edit = 0;
@@ -294,8 +292,8 @@ insertstr(Position p, char *src)
 
 	ins = p.l->s + p.o;
 	memmove(ins + len, ins, strlen(ins)); /* make room TODO only if needed*/
-	memmove(ins, src, len); /* insert text */
-	p.o += len; /* update offset */
+	memmove(ins, src, len);
+	p.o += len;
 
 	if (len < strlen(src)) { /* TODO safe string handling */
 		p.l = newline(p.l, p.l->n);
@@ -339,7 +337,7 @@ rmline(Line *l)
 void
 moveleft(void)
 {
-	if (!cur.o) /* beginning of string */
+	if (!cur.o)
 		return;
 
 	cur.o -= prevlen(cur.l->s, cur.o);
@@ -405,7 +403,6 @@ movedown(void)
 		else
 			cur.o = strlen(cur.l->s) - 1;
 	} else {
-		/* TODO end of termheight etc */
 		/* TODO proper utf vlen to offset */
 		cur.o = MIN((size_t)CURCOL, utflen(cur.l->n->s)-1);
 		cur.l = cur.l->n;
@@ -442,7 +439,7 @@ lflen(char *s) /* length until line feed */
 	char *lf;
 	int len;
 
-	if ((lf = strchr(s, '\n'))) /* search for Line Feed */
+	if ((lf = strchr(s, '\n'))) /* TODO what about \r? Use macro! */
 		len = lf - s;
 	else
 		len = strlen(s); /* TODO trust strlen? */
