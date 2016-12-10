@@ -1,4 +1,5 @@
 /* See LICENSE file */
+#include <ctype.h>
 #include <curses.h>
 #include <errno.h>
 #include <locale.h>
@@ -121,7 +122,7 @@ savefile(char *name)
 	FILE *f;
 	Line *l;
 
-	if (name && name[0] != '\0') /* TODO validrune */
+	if (name && name[0] != '\0')
 		strncpy(filename, name, BUFSIZ); /* TODO LINSIZ? */
 
 	if (!(f = fopen(filename, "w"))) {
@@ -205,8 +206,12 @@ cmdcommand(void)
 	printstatus();
 
 	i = 0;
-	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i]))
-		printw("%c", cmd[i++]);
+	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i])) {
+		if (!isprint(cmd[i]))
+			cmd[i--] = '\0';
+		else
+			printw("%c", cmd[i++]);
+	}
 	cmd[i] = '\0';
 
 	runcmd(cmd);
