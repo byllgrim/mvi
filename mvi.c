@@ -233,9 +233,11 @@ draw(void)
 
 	move(0,0);
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
+		/* TODO clean and refactor this shit */
 		if (l == cur.l) {
 			y = CURLINE;
-			y += utfnlen(l->s, cur.o) / COLS;
+			if (y || !o)
+				y += utfnlen(l->s, cur.o) / COLS;
 		}
 		for (i = o; l->s[i] && LINES - CURLINE - 1; i++)
 			printw("%c", l->s[i]);
@@ -359,7 +361,7 @@ moveright(void)
 void
 moveup(void)
 {
-	size_t hlen, o;
+	size_t hlen, o, no = 0;
 
 	hlen = utfnlen(cur.l->s, cur.o);
 
@@ -368,18 +370,21 @@ moveup(void)
 
 	if (hlen >= (size_t)COLS) {
 		cur.o -= COLS; /* TODO saved offset? */
+		drw.o = no;
 		return;
 	} else {
 		/* TODO proper utf vlen to offset */
 		cur.l = cur.l->p;
 		o = cur.o;
-		cur.o = (utflen(cur.l->s) / COLS) * COLS;
+		no = cur.o = (utflen(cur.l->s) / COLS) * COLS;
 		cur.o += MIN(o, utflen(cur.l->s + cur.o) - 1);
 		/* TODO clean up this logical mess */
 	}
 
-	if (!CURLINE)
-		drw.l = drw.l->p; /* TODO drw.o */
+	if (!CURLINE) {
+		drw.l = drw.l->p;
+		drw.o = no;
+	}
 }
 
 void
