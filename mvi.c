@@ -359,27 +359,27 @@ moveright(void)
 void
 moveup(void)
 {
-	size_t hlen;
+	size_t hlen, o;
 
 	hlen = utfnlen(cur.l->s, cur.o);
 
 	if (!cur.l->p && hlen < (size_t)COLS) /* TODO casts are harmful? */
 		return;
 
-	/* TODO theres a bug when moving up to long line */
 	if (hlen >= (size_t)COLS) {
-		cur.o -= COLS;
-		/* TODO saved offset? */
+		cur.o -= COLS; /* TODO saved offset? */
 		return;
 	} else {
-		/* TODO beginning of termheight etc */
 		/* TODO proper utf vlen to offset */
-		cur.o = MIN(utfnlen(cur.l->s, cur.o), utflen(cur.l->p->s)-1);
 		cur.l = cur.l->p;
+		o = cur.o;
+		cur.o = (utflen(cur.l->s) / COLS) * COLS;
+		cur.o += MIN(o, utflen(cur.l->s + cur.o) - 1);
+		/* TODO clean up this logical mess */
 	}
 
 	if (!CURLINE)
-		drw.l = drw.l->p;
+		drw.l = drw.l->p; /* TODO drw.o */
 }
 
 void
