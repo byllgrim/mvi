@@ -8,6 +8,7 @@
 #include <utf.h>
 
 /* macros */
+#define ISBS(c) (c == 127)
 #define ISESC(c) (c == 27)
 /* TODO VLEN use utflen? */
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -48,6 +49,7 @@ static void runcmd(char *cmd);
 static void draw(void);
 static void insertch(int c);
 static Position insertstr(Position p, char *str);
+static Position backspace(Position p);
 static Line *newline(Line *p, Line *n);
 static void rmline(Line *l);
 static void moveleft(void);
@@ -154,10 +156,12 @@ cmdinsert(void)
 	int c;
 
 	c = getch();
-	/* TODO if backspace prevlen to \0 */
 	if (ISESC(c)) {
 		mode = NORMAL;
 		moveleft();
+	} else if (ISBS(c)) {
+		cur = backspace(cur);
+		touched = 1;
 	} else {
 		insertch(c);
 		touched = 1;
@@ -304,6 +308,25 @@ insertstr(Position p, char *src)
 		insertstr(p, ins + len);
 		ins[len] = '\0';
 	}
+
+	return p;
+}
+
+Position
+backspace(Position p)
+{
+	char *dest, *src;
+	size_t n;
+
+	if (!p.o)
+		return p;
+
+	src = cur.l->s + cur.o;
+	dest = src - 1; /* TODO prevlen */
+	n = strlen(src);
+	memcpy(dest, src, n);
+	src[n - 1] = '\0'; /* TODO prevlen */
+	p.o -= 1; /* TODO prevlen */
 
 	return p;
 }
