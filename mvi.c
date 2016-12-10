@@ -67,6 +67,7 @@ static Position drw; /* first to be drawn on screen */
 static Line *fstln;
 static Mode mode = NORMAL;
 static char *status = NULL;
+static char *filename = NULL;
 
 /* function definitions */
 void
@@ -101,13 +102,14 @@ loadfile(char *name)
 	if (!(buf = calloc(BUFSIZ, sizeof(char))))
 		die("loadfile:"); /* TODO graceful handling */
 
-	p = cur; /* TODO delete old lines if opening with command o */
+	p = cur;
 	while (fread(buf, sizeof(char), BUFSIZ/2, f))
 		p = insertstr(p, buf);
 
 	if (p.l->s[0] == '\0')
 		rmline(p.l);
-	/* TODO save filename for later */
+
+	strncpy(filename, name, BUFSIZ); /* TODO LINSIZ? */
 	fclose(f);
 }
 
@@ -117,10 +119,10 @@ savefile(char *name)
 	FILE *f;
 	Line *l;
 
-	if (!name || (name[0] == '\0')) /* TODO saved filename. validrune */
-		return;
+	if (name && name[0] != '\0') /* TODO validrune */
+		strncpy(filename, name, BUFSIZ); /* TODO LINSIZ? */
 
-	if (!(f = fopen(name, "w"))) {
+	if (!(f = fopen(filename, "w"))) {
 		setstatus("savefile: %s", strerror(errno));
 		return;
 	}
@@ -128,7 +130,7 @@ savefile(char *name)
 	for (l = fstln; l; l = l->n)
 		fprintf(f, "%s\n", l->s);
 
-	setstatus("\"%s\"", name);
+	setstatus("\"%s\"", filename);
 	touched = 0;
 	fclose(f);
 }
@@ -143,6 +145,7 @@ init(void)
 	cur.o = drw.o = 0;
 	cur.l = drw.l = fstln = newline(NULL, NULL);
 	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
+	filename = calloc(BUFSIZ+1, sizeof(char));
 }
 
 void
