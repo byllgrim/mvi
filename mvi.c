@@ -381,7 +381,8 @@ moveright(void)
 
 	/* TODO cur.o == cur.l->l */
 	/* TODO this doesnt work if last char is utf */
-	if (cur.l->s[cur.o + 1] == '\0') /* end of string */
+	/* TODO cur.o + curutflen */
+	if (cur.l->s[cur.o] == '\0') /* end of string */
 		return;
 
 	cur.o += chartorune(&p, cur.l->s + cur.o); /* TODO nextlen()? */
