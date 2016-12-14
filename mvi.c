@@ -371,7 +371,6 @@ moveleft(void)
 		return;
 
 	cur.o -= prevlen(cur.l->s, cur.o);
-	/* TODO rethink movement system */
 }
 
 void
@@ -379,8 +378,6 @@ moveright(void)
 {
 	Rune p;
 
-	/* TODO cur.o == cur.l->l */
-	/* TODO this doesnt work if last char is utf */
 	/* TODO cur.o + curutflen */
 	if (cur.l->s[cur.o] == '\0') /* end of string */
 		return;
@@ -391,7 +388,7 @@ moveright(void)
 void
 moveup(void)
 {
-	size_t hlen, o, no = 0;
+	size_t hlen, o;
 
 	hlen = utfnlen(cur.l->s, cur.o);
 
@@ -400,20 +397,14 @@ moveup(void)
 
 	if (hlen >= (size_t)COLS) {
 		cur.o -= COLS; /* TODO saved offset? */
-		drw.o = no;
 		return;
 	} else {
 		/* TODO proper utf vlen to offset */
 		cur.l = cur.l->p;
 		o = cur.o;
-		no = cur.o = (utflen(cur.l->s) / COLS) * COLS;
+		cur.o = (utflen(cur.l->s) / COLS) * COLS;
 		cur.o += MIN(o, utflen(cur.l->s + cur.o) - 1);
 		/* TODO clean up this logical mess */
-	}
-
-	if (!CURLINE) {
-		drw.l = drw.l->p;
-		drw.o = no;
 	}
 }
 
@@ -437,15 +428,6 @@ movedown(void)
 		/* TODO proper utf vlen to offset */
 		cur.o = MIN((size_t)CURCOL, utflen(cur.l->n->s)-1);
 		cur.l = cur.l->n;
-	}
-
-	if (CURLINE >= LINES - 2) {
-		if (utflen(drw.l->s + drw.o) > (size_t)COLS)
-			drw.o += COLS;
-		else {
-			drw.l = drw.l->n;
-			drw.o = 0;
-		}
 	}
 }
 
