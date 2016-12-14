@@ -48,6 +48,7 @@ static void cmdnormal(void); /* TODO change name? */
 static void cmdcommand(void);
 static void runcmd(char *cmd);
 static void draw(void);
+static void calcdrw(void);
 static void insertch(int c);
 static Position insertstr(Position p, char *str);
 static Position backspace(Position p);
@@ -241,10 +242,11 @@ draw(void)
 	Line *l;
 	size_t x, y, o, i;
 
+	calcdrw();
 	move(0,0);
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
-		/* TODO clean and refactor this shit */
 		if (l == cur.l) {
+			/* TODO rewrite*/
 			y = CURLINE;
 			if (y || !o)
 				y += utfnlen(l->s, cur.o) / COLS;
@@ -261,6 +263,54 @@ draw(void)
 	x = utfnlen(cur.l->s, cur.o) % COLS;
 	move(y, x);
 	refresh();
+}
+
+void
+calcdrw(void)
+{
+	Line *l;
+	size_t len, rows, o;
+
+	if (cur.l == fstln && cur.o < (size_t)COLS) {
+		drw.l = fstln;
+		drw.o = 0;
+		return;
+		/* TODO this is temporary */
+	}
+
+	/* TODO precalc vlen */
+	l = drw.l;
+	o = drw.o;
+	for (rows = 0; l && l != cur.l; l = l->n, o = 0) {
+		len = utflen(l->s + o);
+		rows += len / COLS + 1;
+	}
+	rows += utfnlen(cur.l->s, cur.o) / COLS + 1;
+	while (rows >= (size_t)LINES) {
+		len = utflen(drw.l->s);
+		if (drw.o + COLS < len) { /* TODO utf */
+			drw.o += COLS;
+			rows--;
+		} else {
+			drw.l = drw.l->n;
+			drw.o = 0;
+			rows--;
+		}
+	}
+
+	len = utfnlen(cur.l->s, cur.o);
+	if (drw.l == cur.l && cur.o < drw.o) {
+		drw.o = (len / COLS) * COLS;
+		setstatus("long offset");
+		return;
+	}
+
+	if (cur.l == drw.l->p) {
+		drw.l = drw.l->p;
+		drw.o = (len / COLS) * COLS;
+		setstatus("prev line");
+		return; /* TODO reconsider this optimization */
+	}
 }
 
 void
