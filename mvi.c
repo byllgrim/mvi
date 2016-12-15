@@ -246,7 +246,6 @@ draw(void)
 	move(0,0);
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
 		if (l == cur.l) {
-			/* TODO rewrite*/
 			y = CURLINE;
 			y += utfnlen(l->s + o, cur.o - o) / COLS;
 		}
@@ -258,7 +257,6 @@ draw(void)
 		printw("~\n");
 
 	printstatus();
-
 	x = utfnlen(cur.l->s, cur.o) % COLS;
 	move(y, x);
 	refresh();
@@ -269,13 +267,6 @@ calcdrw(void)
 { /* TODO utf lenghts */
 	Line *l;
 	size_t len, rows, o;
-
-	if (cur.l == fstln && cur.o < (size_t)COLS) {
-		drw.l = fstln;
-		drw.o = 0;
-		return;
-		/* TODO this is temporary */
-	}
 
 	len = utfnlen(cur.l->s, cur.o);
 	if (drw.l == cur.l && cur.o < drw.o) { /* TODO geq? */
@@ -426,8 +417,7 @@ moveright(void)
 {
 	Rune p;
 
-	/* TODO cur.o + curutflen */
-	if (cur.l->s[cur.o] == '\0') /* end of string */
+	if (cur.l->s[cur.o] == '\0')
 		return;
 
 	cur.o += chartorune(&p, cur.l->s + cur.o); /* TODO nextlen()? */
@@ -445,7 +435,6 @@ moveup(void)
 
 	if (hlen >= (size_t)COLS) {
 		cur.o -= COLS; /* TODO saved offset? */
-		return;
 	} else {
 		/* TODO proper utf vlen to offset */
 		cur.l = cur.l->p;
