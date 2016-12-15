@@ -233,6 +233,24 @@ runcmd(char *cmd)
 			savefile(cmd + 2);
 		else
 			savefile(NULL);
+	} else if (cmd[0] == 'd') { /* TODO dd */
+		if (cur.l->n) {
+			if (cur.l == fstln)
+				fstln = cur.l->n;
+			if (cur.l == drw.l) {
+				drw.l = cur.l->n;
+				drw.o = 0;
+			}
+			cur.l = cur.l->n;
+			cur.o = 0;
+			rmline(cur.l->p);
+		} else if (cur.l->p) {
+			cur.l = cur.l->p;
+			cur.o = 0;
+			rmline(cur.l->n);
+		}
+		touched = 1;
+		/* TODO refactor into separate function */
 	}
 }
 
@@ -396,7 +414,8 @@ newline(Line *p, Line *n)
 void
 rmline(Line *l)
 {
-	l->p->n = l->n;
+	if (l->p)
+		l->p->n = l->n;
 	if (l->n)
 		l->n->p = l->p;
 	free(l->s); /* TODO if (l->s) */
