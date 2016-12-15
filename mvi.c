@@ -248,8 +248,7 @@ draw(void)
 		if (l == cur.l) {
 			/* TODO rewrite*/
 			y = CURLINE;
-			if (y || !o)
-				y += utfnlen(l->s, cur.o) / COLS;
+			y += utfnlen(l->s + o, cur.o - o) / COLS;
 		}
 		for (i = o; l->s[i] && LINES - CURLINE - 1; i++)
 			printw("%c", l->s[i]);
