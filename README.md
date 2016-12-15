@@ -1,10 +1,7 @@
 # mvi
-Minimal vi clone
-
-WARNING! Work in progress.
+Minimal vi clone (WIP)
 
 ## Commands
-Only the most basic functionality is welcomed:
 
 	:d        - delete line
 	:q        - quit
@@ -13,8 +10,17 @@ Only the most basic functionality is welcomed:
 	h,j,k,l   - left, down, up, right
 	i         - insert
 
-Search, substitute, etc, should rather be in a fork.
-
 ## Dependencies
 * ncursesw (I plan to remove this dependency)
 * [libutf](http://git.suckless.org/libutf/)
+
+## Description
+This is supposed to be a very minimal vi clone.
+Only a tiny subset of commands are supported.
+Search, substitute, etc, should rather be in a fork.
+
+Some behaviour is slightly different.
+For instance moving to the end of a line,
+or moving downwards within a line.
+
+Beware that it is still a work in progress.
