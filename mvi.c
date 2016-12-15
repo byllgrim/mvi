@@ -267,7 +267,7 @@ draw(void)
 
 void
 calcdrw(void)
-{
+{ /* TODO utf lenghts */
 	Line *l;
 	size_t len, rows, o;
 
@@ -276,6 +276,19 @@ calcdrw(void)
 		drw.o = 0;
 		return;
 		/* TODO this is temporary */
+	}
+
+	len = utfnlen(cur.l->s, cur.o);
+	if (drw.l == cur.l && cur.o < drw.o) { /* TODO geq? */
+		drw.o = (len / COLS) * COLS;
+		return;
+		/* TODO is this redundant? */
+	}
+
+	if (cur.l == drw.l->p) {
+		drw.l = drw.l->p;
+		drw.o = (len / COLS) * COLS;
+		return; /* TODO reconsider this optimization */
 	}
 
 	/* TODO precalc vlen */
@@ -296,20 +309,6 @@ calcdrw(void)
 			drw.o = 0;
 			rows--;
 		}
-	}
-
-	len = utfnlen(cur.l->s, cur.o);
-	if (drw.l == cur.l && cur.o < drw.o) {
-		drw.o = (len / COLS) * COLS;
-		setstatus("long offset");
-		return;
-	}
-
-	if (cur.l == drw.l->p) {
-		drw.l = drw.l->p;
-		drw.o = (len / COLS) * COLS;
-		setstatus("prev line");
-		return; /* TODO reconsider this optimization */
 	}
 }
 
