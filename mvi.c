@@ -11,16 +11,12 @@
 /* macros */
 #define ISBS(c) (c == 127)
 #define ISESC(c) (c == 27)
-/* TODO VLEN use utflen? */
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define CURLINE getcury(stdscr) /* omitted () to match curses' LINES */
 #define CURCOL getcurx(stdscr)
 
 /* types */
-typedef enum {
-	INSERT,
-	NORMAL
-} Mode; /* TODO evaluate this way of using enums */
+enum {INSERT, NORMAL};
 
 typedef struct Line Line;
 struct Line {
@@ -35,7 +31,6 @@ struct Line {
 typedef struct {
 	Line *l;
 	size_t o;  /* offset */
-	/* TODO visual offset? */
 } Position;
 
 /* function declarations */
@@ -43,8 +38,8 @@ static void die(char *fmt, ...);
 static void loadfile(char *name); /* TODO return values */
 static void savefile(char *name);
 static void init(void);
-static void cmdinsert(void); /* TODO change name */
-static void cmdnormal(void); /* TODO change name? */
+static void cmdinsert(void); /* TODO change names?*/
+static void cmdnormal(void);
 static void cmdcommand(void);
 static void runcmd(char *cmd);
 static void draw(void);
@@ -58,7 +53,7 @@ static void moveleft(void);
 static void moveright(void);
 static void moveup(void);
 static void movedown(void);
-static int prevlen(char *s, int o); /* TODO dont need arguments? */
+static int prevlen(char *s, int o);
 static size_t lflen(char *s); /* length til first \n */
 static void setstatus(char *fmt, ...);
 static void printstatus(void);
@@ -66,10 +61,10 @@ static void printstatus(void);
 /* global variables */
 static int edit = 1;
 static int touched = 0;
-static Position cur; /* TODO be mindful of the stack */
+static Position cur;
 static Position drw; /* first to be drawn on screen */
 static Line *fstln;
-static Mode mode = NORMAL;
+static int mode = NORMAL;
 static char *status = NULL;
 static char *filename = NULL;
 
@@ -233,7 +228,7 @@ runcmd(char *cmd)
 			savefile(cmd + 2);
 		else
 			savefile(NULL);
-	} else if (cmd[0] == 'd') { /* TODO dd */
+	} else if (cmd[0] == 'd') {
 		if (cur.l->n) {
 			if (cur.l == fstln)
 				fstln = cur.l->n;
@@ -282,12 +277,12 @@ draw(void)
 
 void
 calcdrw(void)
-{ /* TODO utf lenghts */
+{ /* TODO utf lengths */
 	Line *l;
 	size_t len, rows, o;
 
 	len = utfnlen(cur.l->s, cur.o);
-	if (drw.l == cur.l && cur.o < drw.o) { /* TODO geq? */
+	if (drw.l == cur.l && cur.o < drw.o) {
 		drw.o = (len / COLS) * COLS;
 		return;
 		/* TODO is this redundant? */
@@ -343,14 +338,6 @@ insertch(int c) /* TODO change variable name */
 Position
 insertstr(Position p, char *src)
 {
-	/* Takes a string and inserts it at the given position.
-	 * If there isn't enough space in dest, more will be allocated.
-	 * The previous text must be shifted to make room.
-	 * Upon NL, a new line is made and filled with the remainding text.
-	 * It returns the position after the newly inserted text.
-	 * TODO remove this comment when confirmed functionality.
-	 */
-
 	size_t len;
 	char *ins;
 
@@ -449,7 +436,7 @@ moveup(void)
 
 	hlen = utfnlen(cur.l->s, cur.o);
 
-	if (!cur.l->p && hlen < (size_t)COLS) /* TODO casts are harmful? */
+	if (!cur.l->p && hlen < (size_t)COLS)
 		return;
 
 	if (hlen >= (size_t)COLS) {
@@ -491,11 +478,11 @@ int
 prevlen(char *s, int o)
 {
 	int max, i, n;
-	Rune p; /* TODO name should be r */
+	Rune r;
 
 	max = MIN(UTFmax, o);
 	for (i = max; i > 0; i--) {
-		n = charntorune(&p, s+o-i, i);
+		n = charntorune(&r, s+o-i, i);
 		if (n == i)
 			return n;
 	}
@@ -552,10 +539,6 @@ main(int argc, char *argv[])
 			cmdinsert();
 		else if (mode == NORMAL)
 			cmdnormal();
-		else {
-			mode = NORMAL; /* TODO think about this */
-			setstatus("invalid mode!");
-		}
 	}
 
 	endwin(); /* TODO atexit() and such? */
