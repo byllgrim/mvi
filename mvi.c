@@ -44,6 +44,7 @@ static void cmdcommand(void);
 static void runcmd(char *cmd);
 static void draw(void);
 static void calcdrw(void);
+static size_t calcxpos(char *str, size_t o);
 static void insertch(int c);
 static Position insertstr(Position p, char *str);
 static Position backspace(Position p);
@@ -270,7 +271,7 @@ draw(void)
 		printw("~\n");
 
 	printstatus();
-	x = utfnlen(cur.l->s, cur.o) % COLS;
+	x = calcxpos(cur.l->s, cur.o);
 	move(y, x);
 	refresh();
 }
@@ -313,6 +314,23 @@ calcdrw(void)
 			rows--;
 		}
 	}
+}
+
+size_t
+calcxpos(char *str, size_t o)
+{
+	size_t i, x;
+	Rune p;
+
+	for (i = x = 0; i < o; ) {
+		if (str[i] == '\t')
+			x += TABSIZE - (x%TABSIZE);
+		else
+			x++;
+		i += chartorune(&p, str+i);
+	}
+
+	return x;
 }
 
 void
