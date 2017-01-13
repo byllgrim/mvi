@@ -334,7 +334,7 @@ calcxpos(char *str, size_t o)
 }
 
 void
-insertch(int c) /* TODO change variable name */
+insertch(int c)
 {
 	int i;
 	char *s;
@@ -368,7 +368,7 @@ insertstr(Position p, char *src)
 	memmove(ins, src, len);
 	p.o += len;
 
-	if (len < strlen(src)) { /* TODO safe string handling */
+	if (len < strlen(src)) {
 		p.l = newline(p.l, p.l->n);
 		p.o = 0;
 		p = insertstr(p, src + len + 1);
@@ -444,7 +444,7 @@ moveright(void)
 	if (cur.l->s[cur.o] == '\0')
 		return;
 
-	cur.o += chartorune(&p, cur.l->s + cur.o); /* TODO nextlen()? */
+	cur.o += chartorune(&p, cur.l->s + cur.o);
 }
 
 void
@@ -504,7 +504,7 @@ prevlen(char *s, int o)
 		if (n == i)
 			return n;
 	}
-	return 0; /* TODO -1? */
+	return 0;
 }
 
 size_t
@@ -515,7 +515,7 @@ lflen(char *s)
 	if ((lf = strchr(s, '\n'))) /* fuck CRLF */
 		return lf - s;
 	else
-		return strlen(s); /* TODO trust strlen? */
+		return strlen(s);
 }
 
 void
