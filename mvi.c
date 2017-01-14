@@ -39,6 +39,7 @@ static void die(char *fmt, ...);
 static void loadfile(char *name); /* TODO return values */
 static void savefile(char *name);
 static void init(void);
+static void cleanup(void);
 static void cmdinsert(void); /* TODO change names?*/
 static void cmdnormal(void);
 static void cmdcommand(void);
@@ -147,6 +148,12 @@ init(void)
 	cur.l = drw.l = fstln = newline(NULL, NULL);
 	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
 	filename = calloc(BUFSIZ+1, sizeof(char));
+}
+void
+cleanup(void)
+{
+	endwin();
+	/* TODO free resources? */
 }
 
 void
@@ -556,6 +563,7 @@ main(int argc, char *argv[])
 		die("usage: %s [file]", argv[0]);
 
 	init();
+	atexit(cleanup);
 
 	if (argc == 2)
 		loadfile(argv[1]);
@@ -569,6 +577,5 @@ main(int argc, char *argv[])
 			cmdnormal();
 	}
 
-	endwin(); /* TODO atexit() and such? */
 	return 0;
 }
