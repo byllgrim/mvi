@@ -400,18 +400,22 @@ Position
 backspace(Position p)
 {
 	char *dest, *src;
-	size_t n;
+	size_t n, l, i;
 
 	if (!p.o)
 		return p;
 
-	src = cur.l->s + cur.o;
-	dest = src - 1; /* TODO prevlen */
+	l = prevlen(p.l->s, p.o);
+	src = p.l->s + p.o;
+	dest = src - l;
 	n = strlen(src);
-	memcpy(dest, src, n);
-	src[n - 1] = '\0'; /* TODO prevlen */
-	p.o -= 1; /* TODO prevlen */
+	memmove(dest, src, n);
+	src[n - l] = '\0';
+	p.o -= l;
+	for (i = 0; i < l; i++)
+		src[n - i] = '\0';
 
+	/* TODO cleanup this clutter */
 	return p;
 }
 
