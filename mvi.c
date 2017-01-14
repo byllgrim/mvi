@@ -36,7 +36,7 @@ typedef struct {
 
 /* function declarations */
 static void die(char *fmt, ...);
-static void loadfile(char *name); /* TODO return values */
+static void loadfile(char *name);
 static void savefile(char *name);
 static void init(void);
 static void cleanup(void);
@@ -88,7 +88,7 @@ die(char *fmt, ...)
 		fputc('\n', stderr);
 	}
 
-	exit(1); /* TODO handle curses settings */
+	exit(1);
 }
 
 void
@@ -99,10 +99,10 @@ loadfile(char *name)
 	Position p;
 
 	if (!(f = fopen(name, "r")))
-		die("loadfile:"); /* TODO graceful handling */
+		die("loadfile:");
 
 	if (!(buf = calloc(BUFSIZ + 1, sizeof(char))))
-		die("loadfile:"); /* TODO graceful handling */
+		die("loadfile:");
 
 	p = cur;
 	while (fread(buf, sizeof(char), BUFSIZ, f))
