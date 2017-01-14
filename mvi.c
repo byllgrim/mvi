@@ -14,6 +14,7 @@
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define CURLINE getcury(stdscr) /* omitted () to match curses' LINES */
 #define CURCOL getcurx(stdscr)
+#define LINSIZ 64
 
 /* types */
 enum {INSERT, NORMAL};
@@ -23,7 +24,7 @@ struct Line {
 	char *s;  /* string content */
 	size_t l; /* length excluding \0 */
 	size_t v; /* visual length */
-	size_t m; /* multiples of BUFSIZ TODO LINSIZ? */
+	size_t m; /* multiples of LINSIZ? */
 	Line *p;  /* previous line */
 	Line *n;  /* next line */
 };
@@ -254,7 +255,7 @@ void
 draw(void)
 {
 	Line *l;
-	size_t x, y, o, i;
+	size_t o, i, x, y = 0;
 
 	calcdrw();
 	move(0,0);
@@ -270,8 +271,8 @@ draw(void)
 	while (CURLINE < LINES - 1)
 		printw("~\n");
 
-	printstatus();
 	x = calcxpos(cur.l->s, cur.o);
+	printstatus();
 	move(y, x);
 	refresh();
 }
@@ -327,6 +328,8 @@ calcxpos(char *str, size_t o)
 			x += TABSIZE - (x%TABSIZE);
 		else
 			x++;
+		if (x >= (size_t)COLS)
+			x -= COLS;
 		i += chartorune(&p, str+i);
 	}
 
@@ -356,24 +359,31 @@ insertch(int c)
 Position
 insertstr(Position p, char *src)
 {
-	size_t len;
+	size_t newlen, oldlen;
 	char *ins;
+	/* TODO more descriptive variable names */
 
-	len = lflen(src);
-	if ((p.l->l + len) >= BUFSIZ*p.l->m) /* enough space? */
-		return p; /* TODO allocate more room */
+	newlen = lflen(src);
+	oldlen = strlen(p.l->s);
+	if (oldlen + newlen >= LINSIZ*p.l->m) { /* enough space? */
+		p.l->m += 1 + newlen/LINSIZ;
+		p.l->s = realloc(p.l->s, LINSIZ*p.l->m);
+		memset(p.l->s + oldlen, 0, LINSIZ*p.l->m - oldlen);
+		/* TODO is this unnecessary paranoia? */
+	}
 
 	ins = p.l->s + p.o;
-	memmove(ins + len, ins, strlen(ins)); /* make room TODO only if needed*/
-	memmove(ins, src, len);
-	p.o += len;
+	memmove(ins + newlen, ins, strlen(ins)); /* make room */
+		/* TODO only if needed */
+	memmove(ins, src, newlen);
+	p.o += newlen;
 
-	if (len < strlen(src)) {
+	if (newlen < strlen(src)) {
 		p.l = newline(p.l, p.l->n);
 		p.o = 0;
-		p = insertstr(p, src + len + 1);
-		insertstr(p, ins + len);
-		ins[len] = '\0';
+		p = insertstr(p, src + newlen + 1);
+		insertstr(p, ins + newlen);
+		ins[newlen] = '\0';
 	}
 
 	return p;
@@ -404,7 +414,7 @@ newline(Line *p, Line *n)
 	Line *l;
 
 	l = calloc(1, sizeof(Line)); /* TODO error checking */
-	l->s = calloc(BUFSIZ, sizeof(char));
+	l->s = calloc(LINSIZ, sizeof(char));
 	l->l = l->v = 0;
 	l->m = 1;
 	l->p = p;
