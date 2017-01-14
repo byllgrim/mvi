@@ -101,11 +101,11 @@ loadfile(char *name)
 	if (!(f = fopen(name, "r")))
 		die("loadfile:"); /* TODO graceful handling */
 
-	if (!(buf = calloc(BUFSIZ, sizeof(char))))
+	if (!(buf = calloc(BUFSIZ + 1, sizeof(char))))
 		die("loadfile:"); /* TODO graceful handling */
 
 	p = cur;
-	while (fread(buf, sizeof(char), BUFSIZ/2, f))
+	while (fread(buf, sizeof(char), BUFSIZ, f))
 		p = insertstr(p, buf);
 
 	if (p.l->s[0] == '\0')
