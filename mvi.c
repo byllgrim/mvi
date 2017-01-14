@@ -111,7 +111,7 @@ loadfile(char *name)
 	if (p.l->s[0] == '\0')
 		rmline(p.l);
 
-	strncpy(filename, name, BUFSIZ); /* TODO LINSIZ? */
+	strncpy(filename, name, LINSIZ);
 	fclose(f);
 }
 
@@ -122,7 +122,7 @@ savefile(char *name)
 	Line *l;
 
 	if (name && name[0] != '\0')
-		strncpy(filename, name, BUFSIZ); /* TODO LINSIZ? */
+		strncpy(filename, name, LINSIZ);
 
 	if (!(f = fopen(filename, "w"))) {
 		setstatus("savefile: %s", strerror(errno));
@@ -146,8 +146,8 @@ init(void)
 	noecho();
 	cur.o = drw.o = 0;
 	cur.l = drw.l = fstln = newline(NULL, NULL);
-	status = calloc(BUFSIZ+1, sizeof(char)); /* TODO LINSIZ? */
-	filename = calloc(BUFSIZ+1, sizeof(char));
+	status = calloc(LINSIZ+1, sizeof(char));
+	filename = calloc(LINSIZ+1, sizeof(char));
 }
 void
 cleanup(void)
@@ -205,7 +205,7 @@ cmdcommand(void)
 	char *cmd;
 	size_t i;
 
-	cmd = calloc(BUFSIZ, sizeof(char)); /* TODO paranoid checking */
+	cmd = calloc(LINSIZ, sizeof(char)); /* TODO paranoid checking */
 
 	setstatus(":");
 	printstatus();
@@ -541,7 +541,7 @@ setstatus(char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(status, BUFSIZ, fmt, ap);
+	vsnprintf(status, LINSIZ, fmt, ap);
 	va_end(ap);
 }
 
