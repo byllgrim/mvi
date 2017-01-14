@@ -1,5 +1,5 @@
 # mvi
-Minimal vi clone (WIP)
+Minimal vi-like text editor
 
 ## Commands
 
@@ -15,12 +15,10 @@ Minimal vi clone (WIP)
 * [libutf](http://git.suckless.org/libutf/)
 
 ## Description
-This is supposed to be a very minimal vi clone.
-Only a tiny subset of commands are supported.
+The editor is very minimal, so few commands are supported.
 Search, substitute, etc, should rather be in a fork.
 
-Some behaviour is slightly different.
-For instance moving to the end of a line,
-or moving downwards within a line.
+Its behaviour is not identical to vi!
 
-Beware that it is still a work in progress.
+Aside from a few bugs,
+it is [fully functional](http://i.imgur.com/qJ2VReC.jpg).
