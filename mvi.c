@@ -40,10 +40,10 @@ static void loadfile(char *name);
 static void savefile(char *name);
 static void init(void);
 static void cleanup(void);
-static void cmdinsert(void); /* TODO change names?*/
-static void cmdnormal(void);
-static void cmdcommand(void);
-static void runcmd(char *cmd);
+static void runinsert(void);
+static void runnormal(void);
+static void runcommand(void);
+static void exec(char *cmd);
 static void draw(void);
 static void calcdrw(void);
 static size_t calcxpos(char *str, size_t o);
@@ -157,7 +157,7 @@ cleanup(void)
 }
 
 void
-cmdinsert(void)
+runinsert(void)
 {
 	int c;
 
@@ -175,11 +175,11 @@ cmdinsert(void)
 }
 
 void
-cmdnormal(void)
+runnormal(void)
 {
 	switch(getch()) {
 	case ':':
-		cmdcommand();
+		runcommand();
 		break;
 	case 'h':
 		moveleft();
@@ -200,7 +200,7 @@ cmdnormal(void)
 }
 
 void
-cmdcommand(void)
+runcommand(void)
 {
 	char *cmd;
 	size_t i;
@@ -219,13 +219,13 @@ cmdcommand(void)
 	}
 	cmd[i] = '\0';
 
-	runcmd(cmd);
+	exec(cmd);
 	/* TODO free(cmd) */
 	/* TODO fix memleaks all over the place */
 }
 
 void
-runcmd(char *cmd)
+exec(char *cmd)
 {
 	if (cmd[0] == 'q') {
 		if (!touched || (cmd[1] == '!'))
@@ -572,9 +572,9 @@ main(int argc, char *argv[])
 		draw();
 
 		if (mode == INSERT)
-			cmdinsert();
+			runinsert();
 		else if (mode == NORMAL)
-			cmdnormal();
+			runnormal();
 	}
 
 	return 0;
