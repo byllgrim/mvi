@@ -113,6 +113,7 @@ loadfile(char *name)
 
 	strncpy(filename, name, LINSIZ);
 	fclose(f);
+	free(buf);
 }
 
 void
@@ -220,8 +221,7 @@ runcommand(void)
 	cmd[i] = '\0';
 
 	exec(cmd);
-	/* TODO free(cmd) */
-	/* TODO fix memleaks all over the place */
+	free(cmd);
 }
 
 void
@@ -360,7 +360,7 @@ insertch(int c)
 		s[i] = getch();
 	}
 	cur = insertstr(cur, s);
-	/* TODO free s? */
+	free(s);
 }
 
 Position
@@ -440,8 +440,8 @@ rmline(Line *l)
 		l->p->n = l->n;
 	if (l->n)
 		l->n->p = l->p;
-	free(l->s); /* TODO if (l->s) */
-	/* TODO free(l) */
+	free(l->s);
+	free(l);
 }
 
 void
