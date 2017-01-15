@@ -472,6 +472,7 @@ void
 moveup(void)
 {
 	size_t hlen, o;
+	int oh;
 
 	hlen = utfnlen(cur.l->s, cur.o);
 
@@ -485,7 +486,10 @@ moveup(void)
 		cur.l = cur.l->p;
 		o = cur.o;
 		cur.o = (utflen(cur.l->s) / COLS) * COLS;
-		cur.o += MIN(o, utflen(cur.l->s + cur.o) - 1);
+
+		oh = utflen(cur.l->s + cur.o) - 1;
+		oh = oh >= 0 ? o : 0;
+		cur.o += MIN(o, (size_t)oh);
 		/* TODO clean up this logical mess */
 	}
 }
@@ -493,6 +497,7 @@ moveup(void)
 void
 movedown(void)
 {
+	int o;
 	size_t taillen, idlecol;
 
 	taillen = utflen(cur.l->s + cur.o);
@@ -508,8 +513,11 @@ movedown(void)
 			cur.o = strlen(cur.l->s) - 1;
 	} else {
 		/* TODO proper utf vlen to offset */
-		cur.o = MIN((size_t)CURCOL, utflen(cur.l->n->s)-1);
+		o = utflen(cur.l->n->s) - 1;
+		o = o >= 0 ? o : 0;
+		cur.o = MIN((size_t)CURCOL, (size_t)o);
 		cur.l = cur.l->n;
+		/* TODO clean this shitty mess */
 	}
 }
 
