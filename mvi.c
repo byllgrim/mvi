@@ -470,27 +470,16 @@ moveright(void)
 void
 moveup(void)
 {
-	size_t hlen, o;
-	int oh;
+	size_t pos;
 
-	hlen = utfnlen(cur.l->s, cur.o);
-
-	if (!cur.l->p && hlen < (size_t)COLS)
+	if (!cur.l->p)
 		return;
 
-	if (hlen >= (size_t)COLS) {
-		cur.o -= COLS; /* TODO saved offset? */
-	} else {
-		/* TODO proper utf vlen to offset */
-		cur.l = cur.l->p;
-		o = cur.o;
-		cur.o = (utflen(cur.l->s) / COLS) * COLS;
+	pos = calcxlen(cur.l->s, cur.o);
+	pos = MIN(pos, calcxlen(cur.l->p->s, strlen(cur.l->p->s)));
+	cur.o = calcoffset(cur.l->p->s, pos);
 
-		oh = utflen(cur.l->s + cur.o) - 1;
-		oh = oh >= 0 ? o : 0;
-		cur.o += MIN(o, (size_t)oh);
-		/* TODO clean up this logical mess */
-	}
+	cur.l = cur.l->p;
 }
 
 void
