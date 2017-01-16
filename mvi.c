@@ -122,7 +122,7 @@ savefile(char *name)
 void
 init(void)
 {
-	setlocale(LC_ALL, ""); /* TODO is this necessary? */
+	setlocale(LC_ALL, "");
 	initscr();
 	raw();
 	noecho();
@@ -135,7 +135,6 @@ void
 cleanup(void)
 {
 	endwin();
-	/* TODO free resources? */
 }
 
 void
@@ -333,7 +332,7 @@ insertch(int c)
 	if (KEY_MIN <= c && c <= KEY_MAX) /* curses special keys */
 		return; /* TODO is it necessary? */
 
-	s = ecalloc(5, sizeof(char)); /* TODO use UTFmax */
+	s = ecalloc(UTFmax, sizeof(char));
 	s[0] = (char)c;
 	for (i = 1; i < 4; i++) { /* find utf char */
 		if (fullrune(s, i))
