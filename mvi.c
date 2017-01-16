@@ -25,6 +25,7 @@ struct Line {
 	char *s;  /* string content */
 	size_t l; /* length excluding \0 */
 	size_t v; /* visual length */
+		/* TODO remove ^ if its useless */
 	size_t m; /* multiples of LINSIZ? */
 	Line *p;  /* previous line */
 	Line *n;  /* next line */
@@ -57,14 +58,14 @@ static void moveleft(void);
 static void moveright(void);
 static void moveup(void);
 static void movedown(void);
-static int prevlen(char *s, int o);
+static int prevlen(char *s, int o); /* TODO return size_t */
 static size_t lflen(char *s); /* length til first \n */
 static void setstatus(char *fmt, ...);
 static void printstatus(void);
 
 /* global variables */
 static int edit = 1;
-static int touched = 0;
+static int touched = 0; /* TODO rename unsaved? */
 static Position cur;
 static Position drw; /* first to be drawn on screen */
 static Line *fstln;
@@ -392,6 +393,9 @@ insertstr(Position p, char *src)
 		ins[newlen] = '\0';
 	}
 
+	/* TODO fix bug: Breaking a line and typing at the breakpoint
+	 *               Previous text reappears because '\0' is overwritten.
+	 */
 	return p;
 }
 
@@ -498,7 +502,7 @@ movedown(void)
 }
 
 int
-prevlen(char *s, int o)
+prevlen(char *s, int o) /* TODO rename lenuntil or something */
 {
 	int max, i, n;
 	Rune r;
