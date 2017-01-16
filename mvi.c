@@ -8,10 +8,11 @@
 #include <string.h>
 #include <utf.h>
 
+#include "util.h"
+
 /* macros */
 #define ISBS(c) (c == 127)
 #define ISESC(c) (c == 27)
-#define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define CURLINE getcury(stdscr) /* omitted () to match curses' LINES */
 #define CURCOL getcurx(stdscr)
 #define LINSIZ 64
@@ -35,7 +36,6 @@ typedef struct {
 } Position;
 
 /* function declarations */
-static void die(char *fmt, ...);
 static void loadfile(char *name);
 static void savefile(char *name);
 static void init(void);
@@ -73,25 +73,6 @@ static char *filename = NULL;
 
 /* function definitions */
 void
-die(char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-
-	if (fmt[0] && fmt[strlen(fmt)-1] == ':') {
-		fputc(' ', stderr);
-		perror(NULL);
-	} else {
-		fputc('\n', stderr);
-	}
-
-	exit(1);
-}
-
-void
 loadfile(char *name)
 {
 	FILE *f;
@@ -101,7 +82,7 @@ loadfile(char *name)
 	if (!(f = fopen(name, "r")))
 		die("loadfile:");
 
-	if (!(buf = calloc(BUFSIZ + 1, sizeof(char))))
+	if (!(buf = ecalloc(BUFSIZ + 1, sizeof(char))))
 		die("loadfile:");
 
 	p = cur;
@@ -147,8 +128,8 @@ init(void)
 	noecho();
 	cur.o = drw.o = 0;
 	cur.l = drw.l = fstln = newline(NULL, NULL);
-	status = calloc(LINSIZ+1, sizeof(char));
-	filename = calloc(LINSIZ+1, sizeof(char));
+	status = ecalloc(LINSIZ + 1, sizeof(char));
+	filename = ecalloc(LINSIZ + 1, sizeof(char));
 }
 void
 cleanup(void)
@@ -206,7 +187,7 @@ runcommand(void)
 	char *cmd;
 	size_t i;
 
-	cmd = calloc(LINSIZ, sizeof(char)); /* TODO paranoid checking */
+	cmd = ecalloc(LINSIZ, sizeof(char));
 
 	setstatus(":");
 	printstatus();
@@ -352,7 +333,7 @@ insertch(int c)
 	if (KEY_MIN <= c && c <= KEY_MAX) /* curses special keys */
 		return; /* TODO is it necessary? */
 
-	s = calloc(5, sizeof(char));
+	s = ecalloc(5, sizeof(char)); /* TODO use UTFmax */
 	s[0] = (char)c;
 	for (i = 1; i < 4; i++) { /* find utf char */
 		if (fullrune(s, i))
@@ -424,8 +405,8 @@ newline(Line *p, Line *n)
 {
 	Line *l;
 
-	l = calloc(1, sizeof(Line)); /* TODO error checking */
-	l->s = calloc(LINSIZ, sizeof(char));
+	l = ecalloc(1, sizeof(Line));
+	l->s = ecalloc(LINSIZ, sizeof(char));
 	l->l = l->v = 0;
 	l->m = 1;
 	l->p = p;

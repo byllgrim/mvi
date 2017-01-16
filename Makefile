@@ -1,6 +1,6 @@
 include config.mk
 
-SRC = mvi.c
+SRC = mvi.c util.c
 OBJ = ${SRC:.c=.o}
 
 all: mvi
