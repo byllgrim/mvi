@@ -46,7 +46,8 @@ static void runcommand(void);
 static void exec(char *cmd);
 static void draw(void);
 static void calcdrw(void);
-static size_t calcxpos(char *str, size_t o);
+static size_t calcxlen(char *str, size_t o);
+static size_t calcoffset(char *str, size_t x);
 static void insertch(int c);
 static Position insertstr(Position p, char *str);
 static Position backspace(Position p);
@@ -258,7 +259,10 @@ draw(void)
 	while (CURLINE < LINES - 1)
 		printw("~\n");
 
-	x = calcxpos(cur.l->s, cur.o);
+	x = calcxlen(cur.l->s, cur.o);
+	while (x >= (size_t)COLS)
+		x -= COLS;
+
 	printstatus();
 	move(y, x);
 	refresh();
@@ -305,22 +309,37 @@ calcdrw(void)
 }
 
 size_t
-calcxpos(char *str, size_t o)
+calcxlen(char *str, size_t o)
 {
 	size_t i, x;
 	Rune p;
 
 	for (i = x = 0; i < o; ) {
 		if (str[i] == '\t')
-			x += TABSIZE - (x%TABSIZE);
+			x += TABSIZE - (x % TABSIZE);
 		else
 			x++;
-		if (x >= (size_t)COLS)
-			x -= COLS;
-		i += chartorune(&p, str+i);
+		i += chartorune(&p, str + i);
 	}
 
 	return x;
+}
+
+size_t
+calcoffset(char *str, size_t x)
+{
+	size_t i, o;
+	Rune p;
+
+	for (i = o = 0; i < x ; ) {
+		if (str[o] == '\t')
+			i += TABSIZE - (i % TABSIZE);
+		else
+			i++;
+		o += chartorune(&p, str + o);
+	}
+
+	return o;
 }
 
 void
@@ -477,28 +496,16 @@ moveup(void)
 void
 movedown(void)
 {
-	int o;
-	size_t taillen, idlecol;
+	size_t pos;
 
-	taillen = utflen(cur.l->s + cur.o);
-	idlecol = COLS - CURCOL;
-
-	if (!cur.l->n && taillen <= idlecol)
+	if (!cur.l->n)
 		return;
 
-	if (taillen > idlecol) {
-		if (taillen > (size_t)COLS)
-			cur.o += COLS; /* TODO utf */
-		else
-			cur.o = strlen(cur.l->s) - 1;
-	} else {
-		/* TODO proper utf vlen to offset */
-		o = utflen(cur.l->n->s) - 1;
-		o = o >= 0 ? o : 0;
-		cur.o = MIN((size_t)CURCOL, (size_t)o);
-		cur.l = cur.l->n;
-		/* TODO clean this shitty mess */
-	}
+	pos = calcxlen(cur.l->s, cur.o);
+	pos = MIN(pos, calcxlen(cur.l->n->s, strlen(cur.l->n->s)));
+	cur.o = calcoffset(cur.l->n->s, pos);
+
+	cur.l = cur.l->n;
 }
 
 int
