@@ -380,7 +380,7 @@ insertstr(Position p, char *src)
 	}
 
 	ins = p.l->s + p.o;
-	memmove(ins + newlen, ins, strlen(ins)); /* make room */
+	memmove(ins + newlen, ins, strlen(ins + newlen)); /* make room */
 		/* TODO only if needed */
 	memmove(ins, src, newlen);
 	p.o += newlen;
@@ -393,9 +393,6 @@ insertstr(Position p, char *src)
 		ins[newlen] = '\0';
 	}
 
-	/* TODO fix bug: Breaking a line and typing at the breakpoint
-	 *               Previous text reappears because '\0' is overwritten.
-	 */
 	return p;
 }
 
