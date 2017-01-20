@@ -261,7 +261,10 @@ calcdrw(Position p)
 	Line *l;
 	size_t o, xlen, rows, taillen;
 
-	if (cur.l == p.l->p) {
+	if (cur.l == p.l) {
+		p.o = 0;
+		return p;
+	} else if (cur.l == p.l->p) {
 		p.l = p.l->p;
 		p.o = 0;
 		return p;
