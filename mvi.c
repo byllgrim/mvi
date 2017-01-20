@@ -53,7 +53,8 @@ static void insertch(int c);
 static Position insertstr(Position p, char *str);
 static Position backspace(Position p);
 static Line *newline(Line *p, Line *n);
-static void rmline(Line *l);
+static Position deleteline(Position p);
+static void freeline(Line *l);
 static void moveleft(void);
 static void moveright(void);
 static void moveup(void);
@@ -92,7 +93,7 @@ loadfile(char *name)
 		p = insertstr(p, buf);
 
 	if (p.l->s[0] == '\0')
-		rmline(p.l);
+		freeline(p.l);
 
 	strncpy(filename, name, LINSIZ);
 	fclose(f);
@@ -220,23 +221,8 @@ exec(char *cmd)
 		else
 			savefile(NULL);
 	} else if (cmd[0] == 'd') {
-		if (cur.l->n) {
-			if (cur.l == fstln)
-				fstln = cur.l->n;
-			if (cur.l == drw.l) {
-				drw.l = cur.l->n;
-				drw.o = 0;
-			}
-			cur.l = cur.l->n;
-			cur.o = 0;
-			rmline(cur.l->p);
-		} else if (cur.l->p) {
-			cur.l = cur.l->p;
-			cur.o = 0;
-			rmline(cur.l->n);
-		}
+		cur = deleteline(cur);
 		unsaved = 1;
-		/* TODO refactor into separate function */
 	}
 }
 
@@ -430,8 +416,30 @@ newline(Line *p, Line *n)
 	return l;
 }
 
+Position
+deleteline(Position p)
+{
+	if (p.l->n) {
+		if (p.l == fstln)
+			fstln = p.l->n;
+		if (p.l == drw.l) {
+			drw.l = p.l->n;
+			drw.o = 0;
+		}
+		p.l = p.l->n;
+		p.o = 0;
+		freeline(p.l->p);
+	} else if (p.l->p) {
+		p.l = p.l->p;
+		p.o = 0;
+		freeline(p.l->n);
+	}
+
+	return p;
+}
+
 void
-rmline(Line *l)
+freeline(Line *l)
 {
 	if (l->p)
 		l->p->n = l->n;
