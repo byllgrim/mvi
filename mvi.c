@@ -271,39 +271,34 @@ draw(void) /* TODO take Position? */
 
 Position
 calcdrw(Position p)
-{ /* TODO utf lengths */
+{
 	Line *l;
-	size_t len, rows, o;
-
-	len = utfnlen(cur.l->s, cur.o);
+	size_t o, xlen, rows, taillen;
 
 	if (cur.l == p.l->p) {
 		p.l = p.l->p;
-		p.o = (len / COLS) * COLS;
-		return p; /* TODO reconsider this optimization */
+		p.o = 0;
+		return p;
 	}
 
-	/* TODO precalc vlen */
+	/* TODO precalc vlen? */
 	l = p.l;
 	o = p.o;
-	for (rows = 0; l && l != cur.l; l = l->n, o = 0) {
-		len = utflen(l->s + o);
-		rows += len / COLS + 1;
+	for (rows = 0; l && l->p != cur.l; l = l->n, o = 0) {
+		xlen = calcxlen(l->s + o, strlen(l->s + o));
+		rows += xlen / COLS + 1;
 	}
-	rows += utfnlen(cur.l->s, cur.o) / COLS + 1;
-	while (rows >= (size_t)LINES) {
-		len = utflen(p.l->s);
-		if (p.o + COLS < len) { /* TODO utf */
+
+	for (; rows >= (size_t)LINES; rows--) {
+		taillen = utflen(p.l->s + p.o);
+		if (taillen >= (size_t)COLS) {
 			p.o += COLS;
-			rows--;
 		} else {
 			p.l = p.l->n;
 			p.o = 0;
-			rows--;
 		}
 	}
 
-	/* TODO clean this function */
 	return p;
 }
 
