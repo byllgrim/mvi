@@ -380,7 +380,7 @@ insertstr(Position p, char *src)
 	}
 
 	ins = p.l->s + p.o;
-	memmove(ins + newlen, ins, strlen(ins + newlen)); /* make room */
+	memmove(ins + newlen, ins, strlen(ins) + 1); /* make room */
 		/* TODO only if needed */
 	memmove(ins, src, newlen);
 	p.o += newlen;
