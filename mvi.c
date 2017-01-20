@@ -65,7 +65,7 @@ static void printstatus(void);
 
 /* global variables */
 static int edit = 1;
-static int touched = 0; /* TODO rename unsaved? */
+static int unsaved = 0;
 static Position cur;
 static Position drw; /* first to be drawn on screen */
 static Line *fstln;
@@ -117,7 +117,7 @@ savefile(char *name)
 		fprintf(f, "%s\n", l->s);
 
 	setstatus("\"%s\"", filename);
-	touched = 0;
+	unsaved = 0;
 	fclose(f);
 }
 
@@ -150,10 +150,10 @@ runinsert(void)
 		moveleft();
 	} else if (ISBS(c)) {
 		cur = backspace(cur);
-		touched = 1;
+		unsaved = 1;
 	} else {
 		insertch(c);
-		touched = 1;
+		unsaved = 1;
 	}
 }
 
@@ -210,7 +210,7 @@ void
 exec(char *cmd)
 {
 	if (cmd[0] == 'q') {
-		if (!touched || (cmd[1] == '!'))
+		if (!unsaved || (cmd[1] == '!'))
 			edit = 0;
 		else
 			setstatus("unsaved changes; q! to override");
@@ -235,7 +235,7 @@ exec(char *cmd)
 			cur.o = 0;
 			rmline(cur.l->n);
 		}
-		touched = 1;
+		unsaved = 1;
 		/* TODO refactor into separate function */
 	}
 }
