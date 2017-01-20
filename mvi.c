@@ -58,7 +58,7 @@ static void moveleft(void);
 static void moveright(void);
 static void moveup(void);
 static void movedown(void);
-static int prevlen(char *s, int o); /* TODO return size_t */
+static size_t prevutfsize(char *s, int o);
 static size_t lflen(char *s); /* length til first \n */
 static void setstatus(char *fmt, ...);
 static void printstatus(void);
@@ -405,7 +405,7 @@ backspace(Position p)
 	if (!p.o)
 		return p;
 
-	l = prevlen(p.l->s, p.o);
+	l = prevutfsize(p.l->s, p.o);
 	src = p.l->s + p.o;
 	dest = src - l;
 	n = strlen(src);
@@ -454,7 +454,7 @@ moveleft(void)
 	if (!cur.o)
 		return;
 
-	cur.o -= prevlen(cur.l->s, cur.o);
+	cur.o -= prevutfsize(cur.l->s, cur.o);
 }
 
 void
@@ -498,8 +498,8 @@ movedown(void)
 	cur.l = cur.l->n;
 }
 
-int
-prevlen(char *s, int o) /* TODO rename lenuntil or something */
+size_t
+prevutfsize(char *s, int o)
 {
 	int max, i, n;
 	Rune r;
