@@ -270,17 +270,12 @@ draw(void)
 }
 
 void
-calcdrw(void)
+calcdrw(void) /* TODO return Position? */
 { /* TODO utf lengths */
 	Line *l;
 	size_t len, rows, o;
 
 	len = utfnlen(cur.l->s, cur.o);
-	if (drw.l == cur.l && cur.o < drw.o) {
-		drw.o = (len / COLS) * COLS;
-		return;
-		/* TODO is this redundant? */
-	}
 
 	if (cur.l == drw.l->p) {
 		drw.l = drw.l->p;
@@ -307,6 +302,8 @@ calcdrw(void)
 			rows--;
 		}
 	}
+
+	/* TODO clean this function */
 }
 
 size_t
