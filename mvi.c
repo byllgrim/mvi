@@ -382,7 +382,7 @@ Position
 backspace(Position p)
 {
 	char *dest, *src;
-	size_t n, l, i;
+	size_t n, l;
 
 	if (!p.o)
 		return p;
@@ -391,14 +391,12 @@ backspace(Position p)
 	src = p.l->s + p.o;
 	dest = src - l;
 	n = strlen(src);
-	memmove(dest, src, n);
-	src[n - l] = '\0';
-	p.o -= l;
-	for (i = 0; i < l; i++)
-		src[n - i] = '\0';
 
-	/* TODO cleanup this clutter */
-	/* TODO update l->v and l->l */
+	memmove(dest, src, n + 1);
+
+	p.o -= l;
+	p.l->l -= l;
+	p.l->v = calcvlen(p.l->s, p.l->l);
 	return p;
 }
 
