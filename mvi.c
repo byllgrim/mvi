@@ -345,18 +345,14 @@ insertstr(Position p, char *src)
 	char *ins;
 
 	inslen = lflen(src);
-	if (p.l->l + inslen >= LINSIZ*p.l->m) { /* enough space? */
+	if (p.l->l + inslen >= LINSIZ*p.l->m) {
 		p.l->m += 1 + inslen/LINSIZ;
 		p.l->s = realloc(p.l->s, LINSIZ*p.l->m);
 	}
 
 	ins = p.l->s + p.o;
-	memmove(ins + inslen, ins, strlen(ins) + 1); /* make room */
-		/* TODO only if needed */
+	memmove(ins + inslen, ins, strlen(ins) + 1);
 	memmove(ins, src, inslen);
-	p.o += inslen;
-	p.l->l += inslen;
-	p.l->v += calcvlen(src, inslen);
 
 	if (inslen < strlen(src)) {
 		p.l = newline(p.l, p.l->n);
@@ -366,6 +362,9 @@ insertstr(Position p, char *src)
 		ins[inslen] = '\0';
 	}
 
+	p.o += inslen;
+	p.l->l += inslen;
+	p.l->v += calcvlen(src, inslen);
 	return p;
 }
 
