@@ -1,5 +1,5 @@
 # mvi
-Minimal vi-like text editor
+Minimal vi-like text editor in ~500 SLOC.
 
 ## Commands
 
@@ -8,7 +8,8 @@ Minimal vi-like text editor
 	:q!       - force quit
 	:w [file] - write to file
 	h,j,k,l   - left, down, up, right
-	i         - insert
+	i         - insert mode
+	ESC       - normal mode
 
 ## Dependencies
 * ncursesw (I plan to remove this dependency)
@@ -18,7 +19,7 @@ Minimal vi-like text editor
 The editor is very minimal, so few commands are supported.
 Search, substitute, etc, should rather be in a fork.
 
-Its behaviour is not identical to vi!
+Note that it differs from vi's behaviour!
 
-Aside from a few bugs,
-it is [fully functional](http://i.imgur.com/qJ2VReC.jpg).
+mvi is [fully functional](http://i.imgur.com/qJ2VReC.jpg),
+but please report bugs if you find any.
