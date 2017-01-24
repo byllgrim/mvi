@@ -24,7 +24,6 @@ typedef struct Line Line;
 struct Line {
 	char *s;  /* string content */
 	size_t l; /* length excluding \0 */
-		/* TODO remove ^ if its useless */
 	size_t v; /* visual length */
 	size_t m; /* multiples of LINSIZ? */
 	Line *p;  /* previous line */
@@ -342,33 +341,29 @@ insertch(int c)
 Position
 insertstr(Position p, char *src)
 {
-	size_t newlen, oldlen;
+	size_t inslen;
 	char *ins;
-	/* TODO more descriptive variable names */
 
-	newlen = lflen(src);
-	oldlen = p.l->l;
-	if (oldlen + newlen >= LINSIZ*p.l->m) { /* enough space? */
-		p.l->m += 1 + newlen/LINSIZ;
+	inslen = lflen(src);
+	if (p.l->l + inslen >= LINSIZ*p.l->m) { /* enough space? */
+		p.l->m += 1 + inslen/LINSIZ;
 		p.l->s = realloc(p.l->s, LINSIZ*p.l->m);
-		memset(p.l->s + oldlen, 0, LINSIZ*p.l->m - oldlen);
-		/* TODO is this unnecessary paranoia? */
 	}
 
 	ins = p.l->s + p.o;
-	memmove(ins + newlen, ins, strlen(ins) + 1); /* make room */
+	memmove(ins + inslen, ins, strlen(ins) + 1); /* make room */
 		/* TODO only if needed */
-	memmove(ins, src, newlen);
-	p.o += newlen;
-	p.l->l += newlen;
-	p.l->v += calcvlen(src, newlen);
+	memmove(ins, src, inslen);
+	p.o += inslen;
+	p.l->l += inslen;
+	p.l->v += calcvlen(src, inslen);
 
-	if (newlen < strlen(src)) {
+	if (inslen < strlen(src)) {
 		p.l = newline(p.l, p.l->n);
 		p.o = 0;
-		p = insertstr(p, src + newlen + 1);
-		insertstr(p, ins + newlen);
-		ins[newlen] = '\0';
+		p = insertstr(p, src + inslen + 1);
+		insertstr(p, ins + inslen);
+		ins[inslen] = '\0';
 	}
 
 	return p;
