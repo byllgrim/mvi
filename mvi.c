@@ -47,7 +47,7 @@ static void runcommand(void);
 static void exec(char *cmd);
 static void draw(void);
 static Position calcdrw(Position p);
-static size_t calcxlen(char *str, size_t o);
+static size_t calcvlen(char *str, size_t o);
 static size_t calcoffset(char *str, size_t x);
 static void insertch(int c);
 static Position insertstr(Position p, char *str);
@@ -227,7 +227,7 @@ exec(char *cmd)
 }
 
 void
-draw(void) /* TODO take Position? */
+draw(void)
 {
 	Line *l;
 	size_t o, i, x, y = 0;
@@ -246,7 +246,7 @@ draw(void) /* TODO take Position? */
 	while (CURLINE < LINES - 1)
 		printw("~\n");
 
-	x = calcxlen(cur.l->s, cur.o);
+	x = calcvlen(cur.l->s, cur.o);
 	while (x >= (size_t)COLS)
 		x -= COLS;
 
@@ -259,7 +259,7 @@ Position
 calcdrw(Position p)
 {
 	Line *l;
-	size_t o, xlen, rows, taillen;
+	size_t o, vlen, rows, taillen;
 
 	if (cur.l == p.l) {
 		p.o = 0;
@@ -274,8 +274,8 @@ calcdrw(Position p)
 	l = p.l;
 	o = p.o;
 	for (rows = 0; l && l->p != cur.l; l = l->n, o = 0) {
-		xlen = calcxlen(l->s + o, strlen(l->s + o));
-		rows += xlen / COLS + 1;
+		vlen = calcvlen(l->s + o, strlen(l->s + o));
+		rows += vlen / COLS + 1;
 	}
 
 	for (; rows >= (size_t)LINES; rows--) {
@@ -292,7 +292,7 @@ calcdrw(Position p)
 }
 
 size_t
-calcxlen(char *str, size_t o)
+calcvlen(char *str, size_t o)
 {
 	size_t i, x;
 	Rune p;
@@ -480,8 +480,8 @@ moveup(void)
 	if (!cur.l->p)
 		return;
 
-	pos = calcxlen(cur.l->s, cur.o);
-	pos = MIN(pos, calcxlen(cur.l->p->s, strlen(cur.l->p->s)));
+	pos = calcvlen(cur.l->s, cur.o);
+	pos = MIN(pos, calcvlen(cur.l->p->s, strlen(cur.l->p->s)));
 	cur.o = calcoffset(cur.l->p->s, pos);
 
 	cur.l = cur.l->p;
@@ -495,8 +495,8 @@ movedown(void)
 	if (!cur.l->n)
 		return;
 
-	pos = calcxlen(cur.l->s, cur.o);
-	pos = MIN(pos, calcxlen(cur.l->n->s, strlen(cur.l->n->s)));
+	pos = calcvlen(cur.l->s, cur.o);
+	pos = MIN(pos, calcvlen(cur.l->n->s, strlen(cur.l->n->s)));
 	cur.o = calcoffset(cur.l->n->s, pos);
 
 	cur.l = cur.l->n;
