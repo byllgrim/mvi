@@ -24,8 +24,8 @@ typedef struct Line Line;
 struct Line {
 	char *s;  /* string content */
 	size_t l; /* length excluding \0 */
-	size_t v; /* visual length */
 		/* TODO remove ^ if its useless */
+	size_t v; /* visual length */
 	size_t m; /* multiples of LINSIZ? */
 	Line *p;  /* previous line */
 	Line *n;  /* next line */
@@ -259,7 +259,7 @@ Position
 calcdrw(Position p)
 {
 	Line *l;
-	size_t o, vlen, rows, taillen;
+	size_t rows, taillen;
 
 	if (cur.l == p.l) {
 		p.o = 0;
@@ -270,13 +270,9 @@ calcdrw(Position p)
 		return p;
 	}
 
-	/* TODO precalc vlen? */
-	l = p.l;
-	o = p.o;
-	for (rows = 0; l && l->p != cur.l; l = l->n, o = 0) {
-		vlen = calcvlen(l->s + o, strlen(l->s + o));
-		rows += vlen / COLS + 1;
-	}
+	for (l = p.l, rows = 0; l && l->p != cur.l; l = l->n)
+		rows += l->v / COLS + 1;
+	rows -= calcvlen(p.l->s, p.o) / COLS;
 
 	for (; rows >= (size_t)LINES; rows--) {
 		taillen = utflen(p.l->s + p.o);
@@ -353,7 +349,7 @@ insertstr(Position p, char *src)
 	/* TODO more descriptive variable names */
 
 	newlen = lflen(src);
-	oldlen = strlen(p.l->s);
+	oldlen = strlen(p.l->s); /* TODO p.l->l */
 	if (oldlen + newlen >= LINSIZ*p.l->m) { /* enough space? */
 		p.l->m += 1 + newlen/LINSIZ;
 		p.l->s = realloc(p.l->s, LINSIZ*p.l->m);
@@ -366,6 +362,8 @@ insertstr(Position p, char *src)
 		/* TODO only if needed */
 	memmove(ins, src, newlen);
 	p.o += newlen;
+	p.l->l += newlen;
+	p.l->v += calcvlen(src, newlen);
 
 	if (newlen < strlen(src)) {
 		p.l = newline(p.l, p.l->n);
