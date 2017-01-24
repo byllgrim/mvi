@@ -237,7 +237,7 @@ draw(void)
 	for (l = drw.l, o = drw.o; l; l = l->n, o = 0) {
 		if (l == cur.l) {
 			y = CURLINE;
-			y += utfnlen(l->s + o, cur.o - o) / COLS;
+			y += calcvlen(l->s + o, cur.o - o) / COLS;
 		}
 		for (i = o; l->s[i] && LINES - CURLINE - 1; i++)
 			printw("%c", l->s[i]);
@@ -275,7 +275,7 @@ calcdrw(Position p)
 	rows -= calcvlen(p.l->s, p.o) / COLS;
 
 	for (; rows >= (size_t)LINES; rows--) {
-		taillen = utflen(p.l->s + p.o);
+		taillen = calcvlen(p.l->s + p.o, p.l->v - p.o);
 		if (taillen >= (size_t)COLS) {
 			p.o += COLS;
 		} else {
