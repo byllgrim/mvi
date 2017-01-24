@@ -347,7 +347,7 @@ insertstr(Position p, char *src)
 	/* TODO more descriptive variable names */
 
 	newlen = lflen(src);
-	oldlen = strlen(p.l->s); /* TODO p.l->l */
+	oldlen = p.l->l;
 	if (oldlen + newlen >= LINSIZ*p.l->m) { /* enough space? */
 		p.l->m += 1 + newlen/LINSIZ;
 		p.l->s = realloc(p.l->s, LINSIZ*p.l->m);
@@ -477,7 +477,7 @@ moveup(void)
 		return;
 
 	pos = calcvlen(cur.l->s, cur.o);
-	pos = MIN(pos, calcvlen(cur.l->p->s, strlen(cur.l->p->s)));
+	pos = MIN(pos, cur.l->p->v);
 	cur.o = calcoffset(cur.l->p->s, pos);
 
 	cur.l = cur.l->p;
@@ -492,7 +492,7 @@ movedown(void)
 		return;
 
 	pos = calcvlen(cur.l->s, cur.o);
-	pos = MIN(pos, calcvlen(cur.l->n->s, strlen(cur.l->n->s)));
+	pos = MIN(pos, cur.l->n->v);
 	cur.o = calcoffset(cur.l->n->s, pos);
 
 	cur.l = cur.l->n;
