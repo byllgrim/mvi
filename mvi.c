@@ -136,7 +136,17 @@ init(void)
 void
 cleanup(void)
 {
+	Line *l, *n;
+
 	endwin();
+
+	free(status);
+	free(filename);
+	for (l = fstln; l; l = n) {
+		n = l->n;
+		free(l->s);
+		free(l);
+	}
 }
 
 void
@@ -388,6 +398,7 @@ backspace(Position p)
 		src[n - i] = '\0';
 
 	/* TODO cleanup this clutter */
+	/* TODO update l->v and l->l */
 	return p;
 }
 
