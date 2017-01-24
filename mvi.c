@@ -327,9 +327,6 @@ insertch(int c)
 	int i;
 	char *s;
 
-	if (KEY_MIN <= c && c <= KEY_MAX) /* curses special keys */
-		return; /* TODO is it necessary? */
-
 	s = ecalloc(UTFmax, sizeof(char));
 	s[0] = (char)c;
 	for (i = 1; i <= UTFmax; i++) {
