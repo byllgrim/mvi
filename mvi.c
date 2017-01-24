@@ -353,6 +353,9 @@ insertstr(Position p, char *src)
 	ins = p.l->s + p.o;
 	memmove(ins + inslen, ins, strlen(ins) + 1);
 	memmove(ins, src, inslen);
+	p.o += inslen;
+	p.l->l += inslen;
+	p.l->v += calcvlen(src, inslen);
 
 	if (inslen < strlen(src)) {
 		p.l = newline(p.l, p.l->n);
@@ -362,9 +365,6 @@ insertstr(Position p, char *src)
 		ins[inslen] = '\0';
 	}
 
-	p.o += inslen;
-	p.l->l += inslen;
-	p.l->v += calcvlen(src, inslen);
 	return p;
 }
 
