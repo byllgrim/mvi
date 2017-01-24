@@ -332,12 +332,13 @@ insertch(int c)
 
 	s = ecalloc(UTFmax, sizeof(char));
 	s[0] = (char)c;
-	for (i = 1; i < 4; i++) { /* find utf char */
+	for (i = 1; i <= UTFmax; i++) {
 		if (fullrune(s, i))
 			break;
 		s[i] = getch();
 	}
-	cur = insertstr(cur, s);
+	if (i <= UTFmax)
+		cur = insertstr(cur, s);
 	free(s);
 }
 
