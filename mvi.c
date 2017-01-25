@@ -203,16 +203,20 @@ runcommand(void)
 	setstatus(":");
 	printstatus();
 
-	i = 0;
-	while ((cmd[i] = getch()) != '\n' && !ISESC(cmd[i])) {
-		if (!isprint(cmd[i]))
+	for (i = 0; (cmd[i] = getch()); i++) {
+		if (cmd[i] == '\n') {
+			cmd[i] = '\0';
+			exec(cmd);
+			break;
+		} else if (ISESC(cmd[i])) {
+			break;
+		} else if (!isprint(cmd[i])) {
 			cmd[i--] = '\0';
-		else
-			printw("%c", cmd[i++]);
+		} else {
+			printw("%c", cmd[i]);
+		}
 	}
-	cmd[i] = '\0';
 
-	exec(cmd);
 	free(cmd);
 }
 
