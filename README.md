@@ -12,7 +12,8 @@ Minimal vi-like text editor in ~500 SLOC.
 	ESC       - normal mode
 
 ## Dependencies
-* ncursesw (I plan to remove this dependency)
+* ncursesw or [ansicurses](https://github.com/byllgrim/ansicurses)
+  with `-lansicurses` and `#include <ansicurses.h>`
 * [libutf](http://git.suckless.org/libutf/)
 
 ## Description
