@@ -551,7 +551,8 @@ printstatus(void)
 	move(LINES - 1, 0);
 	for (i = 0; i < (size_t)COLS; i++)
 		printw(" ");
-	mvprintw(LINES - 1, 0, status);
+	move(LINES - 1, 0);
+	printw(status);
 }
 
 int
