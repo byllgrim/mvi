@@ -81,6 +81,7 @@ loadfile(char *name)
 	FILE *f;
 	char *buf;
 	Position p;
+	size_t n;
 
 	if (!(f = fopen(name, "r")))
 		die("loadfile:");
@@ -89,8 +90,10 @@ loadfile(char *name)
 		die("loadfile:");
 
 	p = cur;
-	while (fread(buf, sizeof(char), BUFSIZ, f))
+	while ((n = fread(buf, sizeof(char), BUFSIZ, f))) {
 		p = insertstr(p, buf);
+		memset(buf, 0, n);
+	}
 
 	if (p.l->s[0] == '\0')
 		freeline(p.l);
