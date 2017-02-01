@@ -294,7 +294,7 @@ calcdrw(Position p)
 	rows -= calcvlen(p.l->s, p.o) / COLS;
 
 	for (; rows >= (size_t)LINES; rows--) {
-		taillen = calcvlen(p.l->s + p.o, p.l->v - p.o);
+		taillen = calcvlen(p.l->s + p.o, MIN((int)(p.l->v - p.o), 0));
 		if (taillen >= (size_t)COLS) {
 			p.o += COLS;
 		} else {
