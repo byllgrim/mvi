@@ -158,7 +158,7 @@ runinsert(void)
 {
 	int c;
 
-	c = getchar();
+	c = getch();
 	if (ISESC(c)) {
 		mode = NORMAL;
 		moveleft();
@@ -174,7 +174,7 @@ runinsert(void)
 void
 runnormal(void)
 {
-	switch(getchar()) {
+	switch(getch()) {
 	case ':':
 		runcommand();
 		break;
@@ -208,7 +208,7 @@ runcommand(void)
 	printstatus();
 	refresh();
 
-	for (i = 0; (cmd[i] = getchar()); i++) {
+	for (i = 0; (cmd[i] = getch()); i++) {
 		if (cmd[i] == '\n' || cmd[i] == '\r') {
 			cmd[i] = '\0';
 			exec(cmd);
@@ -351,7 +351,7 @@ insertch(int c)
 	for (i = 1; i <= UTFmax; i++) {
 		if (fullrune(s, i))
 			break;
-		s[i] = getchar();
+		s[i] = getch();
 	}
 	if (i <= UTFmax)
 		cur = insertstr(cur, s);
