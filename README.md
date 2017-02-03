@@ -1,6 +1,8 @@
 # mvi
 Minimal vi-like text editor in ~500 SLOC.
 
+A more advanced version is [svi](https://github.com/byllgrim/svi).
+
 ## Commands
 
 	:d        - delete line
