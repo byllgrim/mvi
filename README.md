@@ -1,7 +1,8 @@
 # mvi
+
 Minimal vi-like text editor in ~500 SLOC.
 
-A more advanced version is [svi](https://github.com/byllgrim/svi).
+mvi is less advanced than [svi](https://github.com/byllgrim/svi).
 
 ## Commands
 
@@ -14,11 +15,15 @@ A more advanced version is [svi](https://github.com/byllgrim/svi).
 	ESC       - normal mode
 
 ## Dependencies
-* ncursesw or [ansicurses](https://github.com/byllgrim/ansicurses)
-  with `-lansicurses` and `#include <ansicurses.h>`
+
+* ncursesw
+  (or [ansicurses](https://github.com/byllgrim/ansicurses) with `-lansicurses`
+  and `#include <ansicurses.h>`)
 * [libutf](http://git.suckless.org/libutf/)
+  (another compatible libutf [here](https://github.com/cls/libutf))
 
 ## Description
+
 The editor is very minimal, so few commands are supported.
 Search, substitute, etc, should rather be in a fork.
 
