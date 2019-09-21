@@ -27,7 +27,4 @@ mvi is less advanced than [svi](https://github.com/byllgrim/svi).
 The editor is very minimal, so few commands are supported.
 Search, substitute, etc, should rather be in a fork.
 
-Note that it differs from vi's behaviour!
-
-mvi is [fully functional](http://i.imgur.com/qJ2VReC.jpg),
-but please report bugs if you find any.
+mvi is [fully functional](http://i.imgur.com/qJ2VReC.jpg).
